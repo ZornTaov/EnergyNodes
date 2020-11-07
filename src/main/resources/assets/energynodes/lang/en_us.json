@@ -1,0 +1,8 @@
+{
+  "itemGroup.energynodes": "Energy Nodes",
+  "item.energynodes.test_pad": "Test Pad",
+  "item.energynodes.energy_linker": "Energy Linker",
+  "block.energynodes.energy_controller": "Energy Controller",
+  "block.energynodes.energy_input": "Energy Input",
+  "block.energynodes.energy_output": "Energy Output"
+}
