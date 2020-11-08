@@ -26,7 +26,6 @@ public class EnergyControllerBlock extends Block {
         builder.add(PROP_FACING);
     }
 
-
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {

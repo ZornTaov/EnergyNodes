@@ -96,6 +96,5 @@ public class EnergyControllerTile extends TileEntity {
         this.handleUpdateTag(this.world.getBlockState(pos), packet.getNbtCompound());
         ModelDataManager.requestModelDataRefresh(this);
         this.getWorld().markBlockRangeForRenderUpdate(this.pos, this.getBlockState(), this.getBlockState());
-
     }
 }
