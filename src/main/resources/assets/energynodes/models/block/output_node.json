@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "energynodes:block/energy_input"
+    "all": "energynodes:block/output_node"
   }
 }

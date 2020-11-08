@@ -16,12 +16,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.zornco.energynodes.block.EnergyControllerBlock;
-import org.zornco.energynodes.block.EnergyTransferBlock;
+import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.TestPadItem;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
-import static org.zornco.energynodes.block.EnergyTransferBlock.*;
+import static org.zornco.energynodes.block.EnergyNodeBlock.*;
 
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
@@ -49,10 +49,10 @@ public class Registration {
     // ================================================================================================================
     public static final RegistryObject<EnergyControllerBlock> ENERGY_CONTROLLER_BLOCK =
             BLOCKS.register("energy_controller", () -> new EnergyControllerBlock(baseProperty));
-    public static final RegistryObject<EnergyTransferBlock> ENERGY_INPUT_BLOCK =
-            BLOCKS.register("energy_input", () -> new EnergyTransferBlock(baseProperty, Flow.IN));
-    public static final RegistryObject<EnergyTransferBlock> ENERGY_OUTPUT_BLOCK =
-            BLOCKS.register("energy_output", () -> new EnergyTransferBlock(baseProperty, Flow.OUT));
+    public static final RegistryObject<EnergyNodeBlock> INPUT_NODE_BLOCK =
+            BLOCKS.register("input_node", () -> new EnergyNodeBlock(baseProperty, Flow.IN));
+    public static final RegistryObject<EnergyNodeBlock> OUTPUT_NODE_BLOCK =
+            BLOCKS.register("output_node", () -> new EnergyNodeBlock(baseProperty, Flow.OUT));
 
     // ================================================================================================================
     //    ITEM BLOCKS
@@ -62,14 +62,14 @@ public class Registration {
                     new BlockItem(ENERGY_CONTROLLER_BLOCK.get(),
                             new Item.Properties().group(Registration.ITEM_GROUP))
             );
-    public static final RegistryObject<Item> ENERGY_INPUT_ITEM =
-            ITEMS.register("energy_input", () ->
-                    new BlockItem(ENERGY_INPUT_BLOCK.get(),
+    public static final RegistryObject<Item> INPUT_NODE_ITEM =
+            ITEMS.register("input_node", () ->
+                    new BlockItem(INPUT_NODE_BLOCK.get(),
                             new Item.Properties().group(Registration.ITEM_GROUP))
             );
-    public static final RegistryObject<Item> ENERGY_OUTPUT_ITEM =
-            ITEMS.register("energy_output", () ->
-                    new BlockItem(ENERGY_OUTPUT_BLOCK.get(),
+    public static final RegistryObject<Item> OUTPUT_NODE_ITEM =
+            ITEMS.register("output_node", () ->
+                    new BlockItem(OUTPUT_NODE_BLOCK.get(),
                             new Item.Properties().group(Registration.ITEM_GROUP))
             );
 
@@ -79,6 +79,10 @@ public class Registration {
     public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
             TILES.register("energy_controller", () ->
                     TileEntityType.Builder.create(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
+                    ).build(null));
+    public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_TRANSFER_TILE =
+            TILES.register("energy_transfer", () ->
+                    TileEntityType.Builder.create(EnergyControllerTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
                     ).build(null));
 
     public static void init(IEventBus modEventBus) {

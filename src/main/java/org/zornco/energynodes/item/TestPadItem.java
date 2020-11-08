@@ -34,16 +34,16 @@ public class TestPadItem extends Item {
             nbt = tile.write(nbt);
             EnergyNodes.LOGGER.info(nbt.toString());
             if (!context.getWorld().isRemote) {
-                Utils.sendMessage(context.getPlayer(), new StringTextComponent(nbt.toString()));
+                Utils.sendMessage(context.getPlayer(), nbt.toString());
             }
         }
 
         BlockState state = context.getWorld().getBlockState(context.getPos());
-        if (state.getValues().size() > 0){
+        if (state.getValues().size() > 0) {
 
             EnergyNodes.LOGGER.info(state.toString());
             if (!context.getWorld().isRemote) {
-                Utils.sendMessage(context.getPlayer(), new StringTextComponent(state.toString()));
+                Utils.sendMessage(context.getPlayer(), state.toString());
             }
         }
 

@@ -3,6 +3,6 @@
   "item.energynodes.test_pad": "Test Pad",
   "item.energynodes.energy_linker": "Energy Linker",
   "block.energynodes.energy_controller": "Energy Controller",
-  "block.energynodes.energy_input": "Energy Input",
-  "block.energynodes.energy_output": "Energy Output"
+  "block.energynodes.input_node": "Input Node",
+  "block.energynodes.output_node": "Output Node"
 }

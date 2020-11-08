@@ -8,13 +8,13 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
-import org.zornco.energynodes.block.EnergyTransferBlock;
+import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -39,27 +39,45 @@ public class EnergyLinkerItem extends Item {
 
                 if (tile != null) {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get("TransferPos")));
-                    if (!((EnergyControllerTile) tile).connectedNodes.contains(otherPos)) {
-                        ((EnergyControllerTile) tile).connectedNodes.add(otherPos);
-                        //EnergyNodes.LOGGER.info("Connected to: "+otherPos);
-                        if (!context.getWorld().isRemote) {
-                            Utils.sendSystemMessage(context.getPlayer(), new StringTextComponent("Connected to: " + compoundnbt.get("TransferPos")));
+                    TileEntity tile2 = world.getTileEntity(otherPos);
+                    if (tile2 != null) {
+                        if (!((EnergyControllerTile) tile).connectedNodes.contains(otherPos)) {
+                            ((EnergyControllerTile) tile).connectedNodes.add(otherPos);
+                            ((EnergyNodeTile) tile2).controllerPos = blockpos;
+                            if (!context.getWorld().isRemote) {
+                                Utils.sendSystemMessage(context.getPlayer(), "Connected to: " + compoundnbt.get("TransferPos"));
+                            }
+                        } else {
+                            ((EnergyControllerTile) tile).connectedNodes.remove(otherPos);
+                            ((EnergyNodeTile) tile2).controllerPos = blockpos;
+                            if (!context.getWorld().isRemote) {
+                                Utils.sendSystemMessage(context.getPlayer(), "Disconnected to: " + compoundnbt.get("TransferPos"));
+                            }
                         }
                     } else {
-                        ((EnergyControllerTile) tile).connectedNodes.remove(otherPos);
-                        //EnergyNodes.LOGGER.info("Disconnected to: "+otherPos);
-                        if (!context.getWorld().isRemote) {
-                            Utils.sendSystemMessage(context.getPlayer(), new StringTextComponent("Disconnected to: " + compoundnbt.get("TransferPos")));
+                        if (((EnergyControllerTile) tile).connectedNodes.contains(otherPos)) {
+                            ((EnergyControllerTile) tile).connectedNodes.remove(otherPos);
+                            if (!context.getWorld().isRemote) {
+                                Utils.sendSystemMessage(context.getPlayer(), "Node missing, removed: " + compoundnbt.get("TransferPos"));
+                            }
+                        } else {
+                            if (!context.getWorld().isRemote) {
+                                Utils.sendSystemMessage(context.getPlayer(), "Node missing at: " + compoundnbt.get("TransferPos"));
+                            }
                         }
+                    }
+                } else {
+                    if (!context.getWorld().isRemote) {
+                        Utils.sendSystemMessage(context.getPlayer(), "Controller has no Tile?!");
                     }
                 }
                 compoundnbt.remove("TransferPos");
                 itemstack.setTag(compoundnbt);
-            } else if ((world.getBlockState(blockpos).getBlock() instanceof EnergyTransferBlock)) {
+            } else if ((world.getBlockState(blockpos).getBlock() instanceof EnergyNodeBlock)) {
                 compoundnbt.put("TransferPos", NBTUtil.writeBlockPos(blockpos));
                 //EnergyNodes.LOGGER.info("Connected from: "+compoundnbt.get("TransferPos"));
                 if (!context.getWorld().isRemote) {
-                    Utils.sendSystemMessage(context.getPlayer(), new StringTextComponent("Starting connection from: " + compoundnbt.get("TransferPos")));
+                    Utils.sendSystemMessage(context.getPlayer(), "Starting connection from: " + compoundnbt.get("TransferPos"));
                 }
                 itemstack.setTag(compoundnbt);
             } else {
