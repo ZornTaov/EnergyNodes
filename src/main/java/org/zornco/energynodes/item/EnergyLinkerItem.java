@@ -45,7 +45,7 @@ public class EnergyLinkerItem extends Item {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
                     BlockState blockState1 = world.getBlockState(otherPos);
                     EnergyNodeTile tile2 = (EnergyNodeTile)world.getTileEntity(otherPos);
-                    if (tile2 != null) {
+                    if (tile2 != null) { // TODO: disconnect old controllers if they exist
                         updateControllerPosList(context,
                                 blockpos,
                                 otherPos,
@@ -54,7 +54,7 @@ public class EnergyLinkerItem extends Item {
                                 tile2);
                     } else {
                         //tile1.connectedInputNodes.remove(otherPos);
-                        SendSystemMessage(context, "Node missing at: " + otherPos.getCoordinatesAsString());
+                        SendSystemMessage(context, "Node missing at: " + Utils.getCoordinatesAsString(otherPos));
                         return ActionResultType.PASS;
                     }
                     compoundnbt.remove(NBT_NODE_POS_KEY);
@@ -66,7 +66,7 @@ public class EnergyLinkerItem extends Item {
                 }
             } else if ((blockState.getBlock() instanceof EnergyNodeBlock)) {
                 compoundnbt.put(NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
-                SendSystemMessage(context, "Starting connection from: " + blockpos.getCoordinatesAsString());
+                SendSystemMessage(context, "Starting connection from: " + Utils.getCoordinatesAsString(blockpos));
                 itemstack.setTag(compoundnbt);
                 return ActionResultType.SUCCESS;
             } else {
@@ -86,12 +86,12 @@ public class EnergyLinkerItem extends Item {
             list.remove(otherPos);
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
-            SendSystemMessage(context, "Disconnected to: " + otherPos.getCoordinatesAsString());
+            SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(otherPos));
         } else {
             list.add(otherPos);
             nodeTile.controllerPos = blockpos;
             nodeTile.energyStorage.setController(tile1);
-            SendSystemMessage(context, "Connected to: " + otherPos.getCoordinatesAsString());
+            SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(otherPos));
         }
     }
 

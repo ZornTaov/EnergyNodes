@@ -8,6 +8,8 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particles.BasicParticleType;
+import net.minecraft.particles.ParticleType;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -30,7 +32,6 @@ public class Registration {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, EnergyNodes.MOD_ID);
     private static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, EnergyNodes.MOD_ID);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, EnergyNodes.MOD_ID);
-
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
@@ -91,6 +92,7 @@ public class Registration {
         ITEMS.register(modEventBus);
         TILES.register(modEventBus);
         ENTITIES.register(modEventBus);
+        ClientRegistration.PARTICLE.register(modEventBus);
     }
     public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {
         @Override

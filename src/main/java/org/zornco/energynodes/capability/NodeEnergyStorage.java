@@ -3,6 +3,7 @@ package org.zornco.energynodes.capability;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
@@ -57,7 +58,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public boolean canExtract() {
-        return false;
+        return nodeTile.getBlockState().get(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT;
     }
 
     @Override

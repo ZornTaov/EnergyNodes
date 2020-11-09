@@ -17,6 +17,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.EnergyNodes;
+import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 import mcjty.theoneprobe.api.*;
@@ -129,7 +130,7 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
         if (tile != null && tile.controllerPos != null) {
             v.horizontal(center)
                     .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
-                    .text(new StringTextComponent(tile.controllerPos.getCoordinatesAsString()));
+                    .text(new StringTextComponent(Utils.getCoordinatesAsString(tile.controllerPos)));
             /*if (blockState.get(PROP_INOUT) == Flow.OUT )
                 v.horizontal(center)
                         .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
