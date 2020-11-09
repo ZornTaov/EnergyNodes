@@ -139,6 +139,10 @@ repositories {
         name 'tterrag maven'
         url "http://maven.tterrag.com/"
     }
+    maven {
+        name 'mekanism'
+        url "https://modmaven.dev/"
+    }
 }
 
 def dev_mods = fileTree(dev_mods_dir).filter { it -> it.isFile() }.files.name.collect( { getModVersion(it) } )
@@ -163,6 +167,10 @@ dependencies {
     // The One Probe
     compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+
+    compileOnly "mekanism:Mekanism:${mekanism_version}:api"
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}")// core
+    runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}:generators")// Mekanism: Generators
 
     // You may put jars on which you depend on in ./libs or you may define them like so..
     // compile "some.group:artifact:version:classifier"

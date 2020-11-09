@@ -1,11 +1,11 @@
 package org.zornco.energynodes.item;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -17,9 +17,12 @@ import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
 public class EnergyLinkerItem extends Item {
+    private static final String NBT_NODE_POS_KEY = "node-pos";
+
     public EnergyLinkerItem() {
         super(new Item.Properties()
                 .maxStackSize(1)
@@ -32,58 +35,69 @@ public class EnergyLinkerItem extends Item {
         BlockPos blockpos = context.getPos();
         World world = context.getWorld();
         ItemStack itemstack = context.getItem();
-        TileEntity tile = world.getTileEntity(blockpos);
+        BlockState blockState = world.getBlockState(blockpos);
         CompoundNBT compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundNBT();
         if (compoundnbt != null) {
-            if (world.getBlockState(blockpos).getBlock() instanceof EnergyControllerBlock && compoundnbt.contains("TransferPos")) {
+            if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(NBT_NODE_POS_KEY)) {
 
-                if (tile != null) {
-                    BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get("TransferPos")));
-                    TileEntity tile2 = world.getTileEntity(otherPos);
+                EnergyControllerTile tile1 = (EnergyControllerTile) world.getTileEntity(blockpos);
+                if (tile1 != null) {
+                    BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
+                    BlockState blockState1 = world.getBlockState(otherPos);
+                    EnergyNodeTile tile2 = (EnergyNodeTile)world.getTileEntity(otherPos);
                     if (tile2 != null) {
-                        if (!((EnergyControllerTile) tile).connectedNodes.contains(otherPos)) {
-                            ((EnergyControllerTile) tile).connectedNodes.add(otherPos);
-                            ((EnergyNodeTile) tile2).controllerPos = blockpos;
-                            if (!context.getWorld().isRemote) {
-                                Utils.sendSystemMessage(context.getPlayer(), "Connected to: " + compoundnbt.get("TransferPos"));
-                            }
-                        } else {
-                            ((EnergyControllerTile) tile).connectedNodes.remove(otherPos);
-                            ((EnergyNodeTile) tile2).controllerPos = blockpos;
-                            if (!context.getWorld().isRemote) {
-                                Utils.sendSystemMessage(context.getPlayer(), "Disconnected to: " + compoundnbt.get("TransferPos"));
-                            }
-                        }
+                        updateControllerPosList(context,
+                                blockpos,
+                                otherPos,
+                                blockState1.get(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
+                                tile1,
+                                tile2);
                     } else {
-                        if (((EnergyControllerTile) tile).connectedNodes.contains(otherPos)) {
-                            ((EnergyControllerTile) tile).connectedNodes.remove(otherPos);
-                            if (!context.getWorld().isRemote) {
-                                Utils.sendSystemMessage(context.getPlayer(), "Node missing, removed: " + compoundnbt.get("TransferPos"));
-                            }
-                        } else {
-                            if (!context.getWorld().isRemote) {
-                                Utils.sendSystemMessage(context.getPlayer(), "Node missing at: " + compoundnbt.get("TransferPos"));
-                            }
-                        }
+                        //tile1.connectedInputNodes.remove(otherPos);
+                        SendSystemMessage(context, "Node missing at: " + otherPos.getCoordinatesAsString());
+                        return ActionResultType.PASS;
                     }
+                    compoundnbt.remove(NBT_NODE_POS_KEY);
+                    itemstack.setTag(compoundnbt);
+                    return ActionResultType.SUCCESS;
                 } else {
-                    if (!context.getWorld().isRemote) {
-                        Utils.sendSystemMessage(context.getPlayer(), "Controller has no Tile?!");
-                    }
+                    SendSystemMessage(context, "Controller has no Tile?!");
+                    return ActionResultType.PASS;
                 }
-                compoundnbt.remove("TransferPos");
+            } else if ((blockState.getBlock() instanceof EnergyNodeBlock)) {
+                compoundnbt.put(NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
+                SendSystemMessage(context, "Starting connection from: " + blockpos.getCoordinatesAsString());
                 itemstack.setTag(compoundnbt);
-            } else if ((world.getBlockState(blockpos).getBlock() instanceof EnergyNodeBlock)) {
-                compoundnbt.put("TransferPos", NBTUtil.writeBlockPos(blockpos));
-                //EnergyNodes.LOGGER.info("Connected from: "+compoundnbt.get("TransferPos"));
-                if (!context.getWorld().isRemote) {
-                    Utils.sendSystemMessage(context.getPlayer(), "Starting connection from: " + compoundnbt.get("TransferPos"));
-                }
-                itemstack.setTag(compoundnbt);
+                return ActionResultType.SUCCESS;
             } else {
                 return super.onItemUse(context);
             }
         }
         return ActionResultType.PASS;
+    }
+
+    private void updateControllerPosList(@Nonnull ItemUseContext context,
+                                         BlockPos blockpos,
+                                         BlockPos otherPos,
+                                         List<BlockPos> list,
+                                         EnergyControllerTile tile1,
+                                         EnergyNodeTile nodeTile) {
+        if (list.contains(otherPos)) {
+            list.remove(otherPos);
+            nodeTile.controllerPos = null;
+            nodeTile.energyStorage.setController(null);
+            SendSystemMessage(context, "Disconnected to: " + otherPos.getCoordinatesAsString());
+        } else {
+            list.add(otherPos);
+            nodeTile.controllerPos = blockpos;
+            nodeTile.energyStorage.setController(tile1);
+            SendSystemMessage(context, "Connected to: " + otherPos.getCoordinatesAsString());
+        }
+    }
+
+    private void SendSystemMessage(@Nonnull ItemUseContext context, String s) {
+        if (!context.getWorld().isRemote) {
+            Utils.sendSystemMessage(context.getPlayer(), s);
+        }
     }
 }

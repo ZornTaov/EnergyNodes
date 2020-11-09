@@ -4,5 +4,7 @@
   "item.energynodes.energy_linker": "Energy Linker",
   "block.energynodes.energy_controller": "Energy Controller",
   "block.energynodes.input_node": "Input Node",
-  "block.energynodes.output_node": "Output Node"
+  "block.energynodes.output_node": "Output Node",
+  "energynodes.connected_to": "Connected To: ",
+  "energynodes.transferred": "FE/t: "
 }

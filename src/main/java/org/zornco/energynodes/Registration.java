@@ -20,6 +20,7 @@ import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.TestPadItem;
 import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import static org.zornco.energynodes.block.EnergyNodeBlock.*;
 
@@ -80,9 +81,9 @@ public class Registration {
             TILES.register("energy_controller", () ->
                     TileEntityType.Builder.create(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
                     ).build(null));
-    public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_TRANSFER_TILE =
+    public static final RegistryObject<TileEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
             TILES.register("energy_transfer", () ->
-                    TileEntityType.Builder.create(EnergyControllerTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
+                    TileEntityType.Builder.create(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
                     ).build(null));
 
     public static void init(IEventBus modEventBus) {
