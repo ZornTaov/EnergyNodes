@@ -1,6 +1,5 @@
 package org.zornco.energynodes.tile;
 
-import com.mojang.serialization.Codec;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.*;
 import net.minecraft.network.NetworkManager;
@@ -14,7 +13,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fml.network.PacketDistributor;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
@@ -115,16 +113,18 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet){
-        this.handleUpdateTag(this.world.getBlockState(pos), packet.getNbtCompound());
-        ModelDataManager.requestModelDataRefresh(this);
-        this.getWorld().markBlockRangeForRenderUpdate(this.pos, this.getBlockState(), this.getBlockState());
+        if (this.getWorld() != null) {
+            this.handleUpdateTag(this.getWorld().getBlockState(pos), packet.getNbtCompound());
+            ModelDataManager.requestModelDataRefresh(this);
+            this.getWorld().markBlockRangeForRenderUpdate(this.pos, this.getBlockState(), this.getBlockState());
+        }
     }
 
     public boolean canReceiveEnergy(EnergyNodeTile nodeTile) {
         return this.connectedInputNodes.contains(nodeTile.getPos()) || this.connectedOutputNodes.contains(nodeTile.getPos());
     }
 
-    public int receiveEnergy(int maxReceive, boolean simulate, EnergyNodeTile nodeTile) {
+    public int receiveEnergy(int maxReceive, boolean simulate) {
         if (Objects.requireNonNull(this.world).isRemote) {
             return 0;
         }

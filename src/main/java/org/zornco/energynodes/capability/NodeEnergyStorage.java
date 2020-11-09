@@ -16,7 +16,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
     private final EnergyNodeTile nodeTile;
     @Nullable
     private EnergyControllerTile controllerTile;
-    public NodeEnergyStorage(EnergyNodeTile tile) {
+    public NodeEnergyStorage(@Nonnull EnergyNodeTile tile) {
         this.nodeTile = tile;
     }
     @Override
@@ -35,7 +35,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
         if (this.controllerTile != null) {
-            return this.controllerTile.receiveEnergy(maxReceive, simulate, nodeTile);
+            return this.controllerTile.receiveEnergy(maxReceive, simulate);
         }
         return 0;
     }
