@@ -11,8 +11,10 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.zornco.energynodes.tile.client.EnergyControllerTileRenderer;
 
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientRegistration {
@@ -23,10 +25,14 @@ public class ClientRegistration {
 
     public static RegistryObject<ParticleType<?>> CARBON = PARTICLE.register("carbon", () -> new BasicParticleType(false));
 
-    @OnlyIn(Dist.CLIENT)
+    @SubscribeEvent
+    public static void init(FMLClientSetupEvent event) {
+        EnergyControllerTileRenderer.register();
+    }
+
     @SubscribeEvent
     public static void registerFactories(ParticleFactoryRegisterEvent event) {
-        ParticleManager manager = Minecraft.getInstance().particles;
+        ParticleManager manager = Minecraft.getInstance().particleEngine;
 
     }
 }
