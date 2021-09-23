@@ -22,19 +22,21 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.AbstractBlock.Properties;
+
 public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public EnergyControllerBlock(Properties properties) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(PROP_FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(PROP_FACING, Direction.NORTH));
     }
 
     @Override
-    public void onReplaced(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-        EnergyControllerTile tile = (EnergyControllerTile)worldIn.getTileEntity(pos);
+    public void onRemove(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
+        EnergyControllerTile tile = (EnergyControllerTile)worldIn.getBlockEntity(pos);
         if (tile != null && tile.connectedInputNodes.size() != 0) {
             for (BlockPos nodePos: tile.connectedInputNodes) {
-                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getTileEntity(nodePos);
+                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
                 if (tile1 != null) {
                     tile1.controllerPos = null;
                 }
@@ -42,17 +44,17 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
         }
         if (tile != null && tile.connectedOutputNodes.size() != 0) {
             for (BlockPos nodePos: tile.connectedOutputNodes) {
-                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getTileEntity(nodePos);
+                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
                 if (tile1 != null) {
                     tile1.controllerPos = null;
                 }
             }
         }
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(PROP_FACING);
     }
 
@@ -71,17 +73,17 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         if (context.getPlayer() != null) {
-            return this.getDefaultState()
-                    .with(PROP_FACING, getFacingFromEntity(context.getPos(), context.getPlayer()));
+            return this.defaultBlockState()
+                    .setValue(PROP_FACING, getFacingFromEntity(context.getClickedPos(), context.getPlayer()));
         }
         return super.getStateForPlacement(context);
     }
 
     private static Direction getFacingFromEntity(BlockPos clickedBlock, LivingEntity entity) {
-        Direction facing =  Direction.getFacingFromVector(
-                (float) (entity.getPosX() - clickedBlock.getX()),
-                (float) (entity.getPosY() - clickedBlock.getY()),
-                (float) (entity.getPosZ() - clickedBlock.getZ()));
+        Direction facing =  Direction.getNearest(
+                (float) (entity.getX() - clickedBlock.getX()),
+                (float) (entity.getY() - clickedBlock.getY()),
+                (float) (entity.getZ() - clickedBlock.getZ()));
 
         if (facing.getAxis() == Direction.Axis.Y) {
             facing = Direction.NORTH;
@@ -96,7 +98,7 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
         IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyControllerTile tile = (EnergyControllerTile) world.getTileEntity(iProbeHitData.getPos());
+        EnergyControllerTile tile = (EnergyControllerTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null) {
             v.horizontal(center)
                     .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".transferred")))

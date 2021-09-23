@@ -13,11 +13,11 @@ public class EnergyNodeParticleData implements IParticleData {
     }
 
     @Override
-    public void write(PacketBuffer buffer) {
+    public void writeToNetwork(PacketBuffer buffer) {
     }
 
     @Override
-    public String getParameters() {
+    public String writeToString() {
         return null;
     }
 }

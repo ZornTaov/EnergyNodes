@@ -15,32 +15,32 @@ import javax.annotation.Nonnull;
 public class TestPadItem extends Item {
     public TestPadItem() {
         super(new Item.Properties()
-                .maxStackSize(1)
-                .group(Registration.ITEM_GROUP));
+                .stacksTo(1)
+                .tab(Registration.ITEM_GROUP));
     }
 
     @Nonnull
     @Override
-    public ActionResultType onItemUse(@Nonnull ItemUseContext context) {
-        TileEntity tile = context.getWorld().getTileEntity(context.getPos());
+    public ActionResultType useOn(@Nonnull ItemUseContext context) {
+        TileEntity tile = context.getLevel().getBlockEntity(context.getClickedPos());
         if (tile != null) {
             CompoundNBT nbt = new CompoundNBT();
-            nbt = tile.write(nbt);
+            nbt = tile.save(nbt);
             EnergyNodes.LOGGER.info(nbt.toString());
-            if (!context.getWorld().isRemote) {
+            if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), nbt.toString());
             }
         }
 
-        BlockState state = context.getWorld().getBlockState(context.getPos());
+        BlockState state = context.getLevel().getBlockState(context.getClickedPos());
         if (state.getValues().size() > 0) {
 
             EnergyNodes.LOGGER.info(state.toString());
-            if (!context.getWorld().isRemote) {
+            if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), state.toString());
             }
         }
 
-        return ActionResultType.func_233537_a_(context.getWorld().isRemote);
+        return ActionResultType.sidedSuccess(context.getLevel().isClientSide);
     }
 }

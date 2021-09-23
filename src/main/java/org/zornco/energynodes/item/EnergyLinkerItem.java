@@ -25,31 +25,31 @@ public class EnergyLinkerItem extends Item {
 
     public EnergyLinkerItem() {
         super(new Item.Properties()
-                .maxStackSize(1)
-                .group(Registration.ITEM_GROUP));
+                .stacksTo(1)
+                .tab(Registration.ITEM_GROUP));
     }
 
     @Nonnull
     @Override
-    public ActionResultType onItemUse(@Nonnull ItemUseContext context) {
-        BlockPos blockpos = context.getPos();
-        World world = context.getWorld();
-        ItemStack itemstack = context.getItem();
+    public ActionResultType useOn(@Nonnull ItemUseContext context) {
+        BlockPos blockpos = context.getClickedPos();
+        World world = context.getLevel();
+        ItemStack itemstack = context.getItemInHand();
         BlockState blockState = world.getBlockState(blockpos);
         CompoundNBT compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundNBT();
         if (compoundnbt != null) {
             if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(NBT_NODE_POS_KEY)) {
 
-                EnergyControllerTile tile1 = (EnergyControllerTile) world.getTileEntity(blockpos);
+                EnergyControllerTile tile1 = (EnergyControllerTile) world.getBlockEntity(blockpos);
                 if (tile1 != null) {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
                     BlockState blockState1 = world.getBlockState(otherPos);
-                    EnergyNodeTile tile2 = (EnergyNodeTile)world.getTileEntity(otherPos);
+                    EnergyNodeTile tile2 = (EnergyNodeTile)world.getBlockEntity(otherPos);
                     if (tile2 != null) { // TODO: disconnect old controllers if they exist
                         updateControllerPosList(context,
                                 blockpos,
                                 otherPos,
-                                blockState1.get(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
+                                blockState1.getValue(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
                                 tile1,
                                 tile2);
                     } else {
@@ -70,7 +70,7 @@ public class EnergyLinkerItem extends Item {
                 itemstack.setTag(compoundnbt);
                 return ActionResultType.SUCCESS;
             } else {
-                return super.onItemUse(context);
+                return super.useOn(context);
             }
         }
         return ActionResultType.PASS;
@@ -96,7 +96,7 @@ public class EnergyLinkerItem extends Item {
     }
 
     private void SendSystemMessage(@Nonnull ItemUseContext context, String s) {
-        if (!context.getWorld().isRemote) {
+        if (!context.getLevel().isClientSide) {
             Utils.sendSystemMessage(context.getPlayer(), s);
         }
     }

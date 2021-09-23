@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:block/orientable",
-  "textures": {
-    "side": "energynodes:block/controller_side",
-    "front": "energynodes:block/controller_screen",
-    "top": "energynodes:block/controller_side"
-  }
-}

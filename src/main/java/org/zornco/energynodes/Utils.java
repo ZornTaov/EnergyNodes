@@ -15,10 +15,10 @@ public class Utils {
 
     public static final Codec<List<BlockPos>> LBPCODEC = Codec.list(BlockPos.CODEC);
     public static void sendMessage(PlayerEntity player, String text) {
-        ((ServerPlayerEntity)player).func_241151_a_(new StringTextComponent(text), ChatType.CHAT, Util.DUMMY_UUID);
+        ((ServerPlayerEntity)player).sendMessage(new StringTextComponent(text), ChatType.CHAT, Util.NIL_UUID);
     }
     public static void sendSystemMessage(PlayerEntity player, String text) {
-        ((ServerPlayerEntity)player).func_241151_a_(new StringTextComponent(text), ChatType.GAME_INFO, Util.DUMMY_UUID);
+        ((ServerPlayerEntity)player).sendMessage(new StringTextComponent(text), ChatType.GAME_INFO, Util.NIL_UUID);
     }
 
     public static String getCoordinatesAsString(Vector3i vec) {

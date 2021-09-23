@@ -58,7 +58,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public boolean canExtract() {
-        return nodeTile.getBlockState().get(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT;
+        return nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT;
     }
 
     @Override

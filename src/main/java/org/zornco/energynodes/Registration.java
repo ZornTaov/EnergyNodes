@@ -26,6 +26,8 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import static org.zornco.energynodes.block.EnergyNodeBlock.*;
 
+import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
+
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, EnergyNodes.MOD_ID);
@@ -36,8 +38,8 @@ public class Registration {
     //   PROPERTIES
     // ================================================================================================================
     private static final AbstractBlock.Properties baseProperty = Block.Properties
-            .create(Material.IRON)
-            .hardnessAndResistance(3.0f, 128.0f)
+            .of(Material.METAL)
+            .strength(3.0f, 128.0f)
             .harvestTool(ToolType.PICKAXE);
 
     // ================================================================================================================
@@ -62,17 +64,17 @@ public class Registration {
     public static final RegistryObject<Item> ENERGY_CONTROLLER_ITEM =
             ITEMS.register("energy_controller", () ->
                     new BlockItem(ENERGY_CONTROLLER_BLOCK.get(),
-                            new Item.Properties().group(Registration.ITEM_GROUP))
+                            new Item.Properties().tab(Registration.ITEM_GROUP))
             );
     public static final RegistryObject<Item> INPUT_NODE_ITEM =
             ITEMS.register("input_node", () ->
                     new BlockItem(INPUT_NODE_BLOCK.get(),
-                            new Item.Properties().group(Registration.ITEM_GROUP))
+                            new Item.Properties().tab(Registration.ITEM_GROUP))
             );
     public static final RegistryObject<Item> OUTPUT_NODE_ITEM =
             ITEMS.register("output_node", () ->
                     new BlockItem(OUTPUT_NODE_BLOCK.get(),
-                            new Item.Properties().group(Registration.ITEM_GROUP))
+                            new Item.Properties().tab(Registration.ITEM_GROUP))
             );
 
     // ================================================================================================================
@@ -80,11 +82,11 @@ public class Registration {
     // ================================================================================================================
     public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
             TILES.register("energy_controller", () ->
-                    TileEntityType.Builder.create(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
+                    TileEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
                     ).build(null));
     public static final RegistryObject<TileEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
             TILES.register("energy_transfer", () ->
-                    TileEntityType.Builder.create(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
+                    TileEntityType.Builder.of(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
                     ).build(null));
 
     public static void init(IEventBus modEventBus) {
@@ -96,7 +98,7 @@ public class Registration {
     }
     public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {
         @Override
-        public ItemStack createIcon() {
+        public ItemStack makeIcon() {
             return new ItemStack(Registration.TEST_PAD_ITEM.get());
         }
     };

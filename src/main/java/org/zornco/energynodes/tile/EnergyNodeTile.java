@@ -42,8 +42,8 @@ public class EnergyNodeTile extends TileEntity {
     }
 
     @Override
-    public void read(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
+        super.load(state, tag);
         if (tag.get(NBT_CONTROLLER_POS_KEY) != null)
             BlockPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag.get(NBT_CONTROLLER_POS_KEY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
@@ -52,18 +52,18 @@ public class EnergyNodeTile extends TileEntity {
             Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(blockPos -> connectedTiles.put(blockPos,
-                            Objects.requireNonNull(getWorld()).getTileEntity(blockPos))));
+                            Objects.requireNonNull(getLevel()).getBlockEntity(blockPos))));
     }
 
     @Nonnull
     @Override
-    public CompoundNBT write(@Nonnull CompoundNBT compound) {
-        CompoundNBT tag = super.write(compound);
+    public CompoundNBT save(@Nonnull CompoundNBT compound) {
+        CompoundNBT tag = super.save(compound);
         if (controllerPos != null)
             BlockPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, controllerPos)
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(NBT_CONTROLLER_POS_KEY, inbt));
-        if (getBlockState().get(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
+        if (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
             Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(NBT_CONNECTED_TILES_KEY, inbt));
@@ -73,24 +73,24 @@ public class EnergyNodeTile extends TileEntity {
     @Nonnull
     @Override
     public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+        return save(new CompoundNBT());
     }
 
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        read(state, tag);
+        load(state, tag);
     }
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 0, this.getUpdateTag());
+        return new SUpdateTileEntityPacket(this.worldPosition, 0, this.getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet){
-        this.handleUpdateTag(this.getBlockState(), packet.getNbtCompound());
+        this.handleUpdateTag(this.getBlockState(), packet.getTag());
         ModelDataManager.requestModelDataRefresh(this);
-        Objects.requireNonNull(this.getWorld()).markBlockRangeForRenderUpdate(this.pos, this.getBlockState(), this.getBlockState());
+        Objects.requireNonNull(this.getLevel()).setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
     }
 
     @Nonnull
@@ -103,8 +103,8 @@ public class EnergyNodeTile extends TileEntity {
     }
 
     @Override
-    public void remove() {
+    public void setRemoved() {
         energy.invalidate();
-        super.remove();
+        super.setRemoved();
     }
 }

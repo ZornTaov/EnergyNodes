@@ -54,8 +54,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void read(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
-        super.read(state, tag);
+    public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
+        super.load(state, tag);
         Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_INPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(listINBTPair -> this.connectedInputNodes = new ArrayList<>(listINBTPair.getFirst()));
@@ -70,8 +70,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     @Nonnull
     @Override
-    public CompoundNBT write(@Nonnull CompoundNBT compound) {
-        CompoundNBT tag = super.write(compound);
+    public CompoundNBT save(@Nonnull CompoundNBT compound) {
+        CompoundNBT tag = super.save(compound);
         Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedInputNodes)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(inbt -> tag.put(NBT_CONNECTED_INPUT_NODES_KEY, inbt));
@@ -112,24 +112,24 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.pos, 1, this.getUpdateTag());
+        return new SUpdateTileEntityPacket(this.worldPosition, 1, this.getUpdateTag());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet){
-        if (this.getWorld() != null) {
-            this.handleUpdateTag(this.getWorld().getBlockState(pos), packet.getNbtCompound());
+        if (this.getLevel() != null) {
+            this.handleUpdateTag(this.getLevel().getBlockState(worldPosition), packet.getTag());
             ModelDataManager.requestModelDataRefresh(this);
-            this.getWorld().markBlockRangeForRenderUpdate(this.pos, this.getBlockState(), this.getBlockState());
+            this.getLevel().setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
         }
     }
 
     public boolean canReceiveEnergy(EnergyNodeTile nodeTile) {
-        return this.connectedInputNodes.contains(nodeTile.getPos()) || this.connectedOutputNodes.contains(nodeTile.getPos());
+        return this.connectedInputNodes.contains(nodeTile.getBlockPos()) || this.connectedOutputNodes.contains(nodeTile.getBlockPos());
     }
 
     public int receiveEnergy(int maxReceive, boolean simulate) {
-        if (Objects.requireNonNull(this.world).isRemote) {
+        if (Objects.requireNonNull(this.level).isClientSide) {
             return 0;
         }
         int amountReceived = 0;
@@ -138,7 +138,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         if (!simulate) {
             connectedEnergyTilesAmount = this.connectedOutputNodes
                     .stream()
-                    .map(blockPos -> (EnergyNodeTile) world.getTileEntity(blockPos))
+                    .map(blockPos -> (EnergyNodeTile) level.getBlockEntity(blockPos))
                     .filter(Objects::nonNull)
                     .mapToInt(outputTile -> outputTile.connectedTiles
                             .entrySet()
@@ -146,7 +146,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                             .mapToInt(entry ->
                                 entry.getValue()
                                         .getCapability(CapabilityEnergy.ENERGY,
-                                                getFacingFromBlockPos(outputTile.getPos(), entry.getKey()))
+                                                getFacingFromBlockPos(outputTile.getBlockPos(), entry.getKey()))
                                         .map(iEnergyStorage -> (iEnergyStorage.canReceive() ||
                                         iEnergyStorage.getEnergyStored() / iEnergyStorage.getMaxEnergyStored() != 1)
                                         ? 1 : 0).orElse(0))
@@ -158,7 +158,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
 
         for (BlockPos outputBlockPos : this.connectedOutputNodes) {
-            EnergyNodeTile outputTile = (EnergyNodeTile) world.getTileEntity(outputBlockPos);
+            EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(outputBlockPos);
             if (outputTile != null) {
                 for (Map.Entry<BlockPos, TileEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
                     BlockPos outputOffset = tileEntry.getKey();
@@ -169,7 +169,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                         LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing);
                         if (adjacentStorageOptional.isPresent()) {
                             IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                                    () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.pos));
+                                    () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));
                             int amountToSend = (int) ((this.rateLimit == UNLIMITED_RATE ? maxReceive : Math.min(maxReceive, this.rateLimit))/connectedEnergyTilesAmount);
                             amountReceivedThisBlock = adjacentStorage.receiveEnergy(amountToSend, simulate);
                         }
@@ -187,7 +187,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     @Nonnull
     private Direction getFacingFromBlockPos(BlockPos pos, BlockPos neighbor) {
-        return Direction.getFacingFromVector(
+        return Direction.getNearest(
                 (float) (pos.getX() - neighbor.getX()),
                 (float) (pos.getY() - neighbor.getY()),
                 (float) (pos.getZ() - neighbor.getZ()));
@@ -195,10 +195,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     @Override
     public void tick() {
-        if (this.world == null) {
+        if (this.level == null) {
             return;
         }
-        if (!this.world.isRemote) {
+        if (!this.level.isClientSide) {
             // Compute the FE transfer in this tick by taking the difference between total transfer this
             // tick and the total transfer last tick
             transferredThisTick = Math.abs(this.totalEnergyTransferred - this.totalEnergyTransferredLastTick);
@@ -209,7 +209,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
 
             if (transferredThisTick > 0) {
-                this.markDirty();
+                this.setChanged();
             }
 
             // Send update packet to all nearby players if required (if the transfer rate changed or enough
@@ -229,7 +229,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             }*/
 
             if (this.ticks % 10 == 0) {
-                this.markDirty();
+                this.setChanged();
                 //this.checkConnections();
             }
 
@@ -247,16 +247,16 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @OnlyIn(Dist.CLIENT)
     private void spawnParticles() {
         if (connectedInputNodes.size() <= 0) return;
-        if (world != null && Minecraft.getInstance().player.getHeldItemMainhand().getItem() instanceof EnergyLinkerItem) {
+        if (level != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
             for (BlockPos inputPos : connectedInputNodes) {
-                Vector3d spawn = Vector3d.copyCentered(inputPos);
-                Vector3d dest = Vector3d.copyCentered(pos).subtract(spawn).scale(.1);
-                world.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+                Vector3d spawn = Vector3d.atCenterOf(inputPos);
+                Vector3d dest = Vector3d.atCenterOf(worldPosition).subtract(spawn).scale(.1);
+                level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }
             for (BlockPos outputPos : connectedOutputNodes) {
-                Vector3d spawn = Vector3d.copyCentered(pos);
-                Vector3d dest = Vector3d.copyCentered(outputPos).subtract(spawn).scale(.1);
-                world.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+                Vector3d spawn = Vector3d.atCenterOf(worldPosition);
+                Vector3d dest = Vector3d.atCenterOf(outputPos).subtract(spawn).scale(.1);
+                level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }
         }
     }

@@ -25,6 +25,8 @@ import mcjty.theoneprobe.api.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.AbstractBlock.Properties;
+
 public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
 
     public static class Flow {
@@ -36,16 +38,16 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
 
     public EnergyNodeBlock(Properties properties, boolean flow) {
         super(properties);
-        this.setDefaultState(this.stateContainer.getBaseState().with(PROP_INOUT, flow));
+        this.registerDefaultState(this.stateDefinition.any().setValue(PROP_INOUT, flow));
     }
 
     @Override
-    public void onBlockAdded(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
-        if (state.get(PROP_INOUT) == Flow.OUT && !world.isRemote()) {
+    public void onPlace(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
+        if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide()) {
             for (Direction facing : Direction.values()) {
-                BlockPos neighbor = pos.offset(facing);
-                EnergyNodeTile nodeTile = (EnergyNodeTile) world.getTileEntity(pos);
-                TileEntity otherTile = world.getTileEntity(neighbor);
+                BlockPos neighbor = pos.relative(facing);
+                EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
+                TileEntity otherTile = world.getBlockEntity(neighbor);
                 if (otherTile != null) {
                     LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
                     if (adjacentStorageOptional.isPresent()) {
@@ -66,12 +68,12 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
 
     @Override
     public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor) {
-        if (state.get(PROP_INOUT) == Flow.OUT && !world.isRemote())
+        if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
         {
-            EnergyNodeTile nodeTile = (EnergyNodeTile) world.getTileEntity(pos);
-            TileEntity otherTile = world.getTileEntity(neighbor);
+            EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
+            TileEntity otherTile = world.getBlockEntity(neighbor);
             if (otherTile != null) {
-                Direction facing =  Direction.getFacingFromVector(
+                Direction facing =  Direction.getNearest(
                         (float) (pos.getX() - neighbor.getX()),
                         (float) (pos.getY() - neighbor.getY()),
                         (float) (pos.getZ() - neighbor.getZ()));
@@ -93,19 +95,19 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
     }
 
     @Override
-    public void onReplaced(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-        EnergyNodeTile tile = (EnergyNodeTile)worldIn.getTileEntity(pos);
+    public void onRemove(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
+        EnergyNodeTile tile = (EnergyNodeTile)worldIn.getBlockEntity(pos);
         if (tile != null && tile.controllerPos != null) {
-            EnergyControllerTile tile1 = (EnergyControllerTile)worldIn.getTileEntity(tile.controllerPos);
+            EnergyControllerTile tile1 = (EnergyControllerTile)worldIn.getBlockEntity(tile.controllerPos);
             if (tile1 != null) {
-                (state.get(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes).remove(pos);
+                (state.getValue(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes).remove(pos);
             }
         }
-        super.onReplaced(state, worldIn, pos, newState, isMoving);
+        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         builder.add(PROP_INOUT);
     }
 
@@ -126,7 +128,7 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
         IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyNodeTile tile = (EnergyNodeTile) world.getTileEntity(iProbeHitData.getPos());
+        EnergyNodeTile tile = (EnergyNodeTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null && tile.controllerPos != null) {
             v.horizontal(center)
                     .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
