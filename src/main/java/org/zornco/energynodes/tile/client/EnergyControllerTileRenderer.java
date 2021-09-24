@@ -12,6 +12,7 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.block.EnergyControllerBlock;
+import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
@@ -32,7 +33,8 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
         matrixStack.translate(0.0F, 0.0, 0.5325);
 
         FontRenderer fontrenderer = Minecraft.getInstance().font;
-        String text = te.transferredThisTick + "000000000";
+        NetworkManager.RequestEnergyTransferred(te, 20);
+        String text = te.transferredThisTick + "";
         int width = fontrenderer.width(text);
         float f3 = 1.0f/(width + 15);
         matrixStack.scale(f3 * scale, -f3 * scale, f3);

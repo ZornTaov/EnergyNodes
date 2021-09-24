@@ -21,6 +21,7 @@ import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.TestPadItem;
+import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
@@ -95,6 +96,8 @@ public class Registration {
         TILES.register(modEventBus);
         ENTITIES.register(modEventBus);
         ClientRegistration.PARTICLE.register(modEventBus);
+
+        NetworkManager.Register();
     }
     public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {
         @Override

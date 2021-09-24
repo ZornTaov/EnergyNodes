@@ -11,6 +11,7 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class TestPadItem extends Item {
     public TestPadItem() {
@@ -26,16 +27,18 @@ public class TestPadItem extends Item {
         if (tile != null) {
             CompoundNBT nbt = new CompoundNBT();
             nbt = tile.save(nbt);
-            EnergyNodes.LOGGER.info(nbt.toString());
             if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), nbt.toString());
+            }
+            if (Objects.requireNonNull(context.getPlayer()).isCrouching())
+            {
+                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT ":"SERVER ") + nbt.toString());
             }
         }
 
         BlockState state = context.getLevel().getBlockState(context.getClickedPos());
         if (state.getValues().size() > 0) {
 
-            EnergyNodes.LOGGER.info(state.toString());
             if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), state.toString());
             }

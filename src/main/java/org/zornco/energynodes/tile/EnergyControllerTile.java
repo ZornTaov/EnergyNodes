@@ -31,6 +31,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     protected static final String NBT_CONNECTED_INPUT_NODES_KEY = "connected-input-nodes";
     protected static final String NBT_CONNECTED_OUTPUT_NODES_KEY = "connected-output-nodes";
     protected static final String NBT_TOTAL_ENERGY_TRANSFERRED_KEY = "total-energy-transferred";
+    protected static final String NBT_TRANSFERRED_THIS_TICK_KEY = "transferred-this-tick";
     protected static final String NBT_RATE_LIMIT_KEY = "rate-limit";
 
     public static final int UNLIMITED_RATE = -1;
@@ -63,6 +64,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(listINBTPair -> this.connectedOutputNodes = new ArrayList<>(listINBTPair.getFirst()));
         this.totalEnergyTransferred = tag.getLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
+        this.transferredThisTick = tag.getLong(NBT_TRANSFERRED_THIS_TICK_KEY);
         this.rateLimit = tag.getInt(NBT_RATE_LIMIT_KEY);
 
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
@@ -79,6 +81,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(inbt -> tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, inbt));
         tag.putLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
+        tag.putLong(NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
         tag.putInt(NBT_RATE_LIMIT_KEY, this.rateLimit);
         return tag;
     }
@@ -94,6 +97,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(inbt -> tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, inbt));
         tag.putLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
+        tag.putLong(NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
         tag.putInt(NBT_RATE_LIMIT_KEY, this.rateLimit);
         return tag;
     }
@@ -107,6 +111,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(listINBTPair -> this.connectedOutputNodes = new ArrayList<>(listINBTPair.getFirst()));
         this.totalEnergyTransferred = tag.getLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
+        this.transferredThisTick = tag.getLong(NBT_TRANSFERRED_THIS_TICK_KEY);
         this.rateLimit = tag.getInt(NBT_RATE_LIMIT_KEY);
     }
 
@@ -247,7 +252,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @OnlyIn(Dist.CLIENT)
     private void spawnParticles() {
         if (connectedInputNodes.size() <= 0) return;
-        if (level != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
+        if (Minecraft.getInstance().player != null && level != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
             for (BlockPos inputPos : connectedInputNodes) {
                 Vector3d spawn = Vector3d.atCenterOf(inputPos);
                 Vector3d dest = Vector3d.atCenterOf(worldPosition).subtract(spawn).scale(.1);
