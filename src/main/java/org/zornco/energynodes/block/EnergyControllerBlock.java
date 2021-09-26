@@ -22,8 +22,6 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.block.AbstractBlock.Properties;
-
 public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public EnergyControllerBlock(Properties properties) {
@@ -35,7 +33,7 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     public void onRemove(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
         EnergyControllerTile tile = (EnergyControllerTile)worldIn.getBlockEntity(pos);
         if (tile != null && tile.connectedInputNodes.size() != 0) {
-            for (BlockPos nodePos: tile.connectedInputNodes) {
+            for (BlockPos nodePos: tile.connectedInputNodes.keySet()) {
                 EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
                 if (tile1 != null) {
                     tile1.controllerPos = null;
@@ -43,7 +41,7 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
             }
         }
         if (tile != null && tile.connectedOutputNodes.size() != 0) {
-            for (BlockPos nodePos: tile.connectedOutputNodes) {
+            for (BlockPos nodePos: tile.connectedOutputNodes.keySet()) {
                 EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
                 if (tile1 != null) {
                     tile1.controllerPos = null;

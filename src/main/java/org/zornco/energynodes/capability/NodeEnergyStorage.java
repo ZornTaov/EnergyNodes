@@ -35,8 +35,9 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
-        if (this.controllerTile != null) {
-            return this.controllerTile.receiveEnergy(maxReceive, simulate);
+        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.IN) {
+            return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
+            //return this.energy;
         }
         return 0;
     }
@@ -53,7 +54,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public int getMaxEnergyStored() {
-        return 0;
+        return this.energy * 2;
     }
 
     @Override
@@ -63,7 +64,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public boolean canReceive() {
-        if (this.controllerTile != null) {
+        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.IN) {
             return this.controllerTile.canReceiveEnergy(nodeTile);
         }
         return false;
@@ -71,5 +72,9 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     public void setController(EnergyControllerTile controllerTile) {
         this.controllerTile = controllerTile;
+    }
+
+    public void setEnergyStored(int amountReceivedThisBlock) {
+        this.energy = amountReceivedThisBlock;
     }
 }

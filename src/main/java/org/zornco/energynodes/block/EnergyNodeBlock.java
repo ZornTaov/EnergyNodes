@@ -3,10 +3,11 @@ package org.zornco.energynodes.block;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -25,18 +26,22 @@ import mcjty.theoneprobe.api.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.minecraft.block.AbstractBlock.Properties;
-
 public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
 
-    public static class Flow {
-        public static final boolean OUT = true;
-        public static final boolean IN = false;
+    public enum Flow implements IStringSerializable {
+        OUT,
+        IN;
+
+        @Nonnull
+        @Override
+        public String getSerializedName() {
+            return this.name().toLowerCase();
+        }
     }
 
-    public static final BooleanProperty PROP_INOUT = BooleanProperty.create("inout");
+    public static final EnumProperty<Flow> PROP_INOUT = EnumProperty.create("inout", Flow.class);
 
-    public EnergyNodeBlock(Properties properties, boolean flow) {
+    public EnergyNodeBlock(Properties properties, Flow flow) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(PROP_INOUT, flow));
     }
@@ -92,18 +97,6 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
                 nodeTile.connectedTiles.remove(neighbor);
             }
         }
-    }
-
-    @Override
-    public void onRemove(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-        EnergyNodeTile tile = (EnergyNodeTile)worldIn.getBlockEntity(pos);
-        if (tile != null && tile.controllerPos != null) {
-            EnergyControllerTile tile1 = (EnergyControllerTile)worldIn.getBlockEntity(tile.controllerPos);
-            if (tile1 != null) {
-                (state.getValue(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes).remove(pos);
-            }
-        }
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override

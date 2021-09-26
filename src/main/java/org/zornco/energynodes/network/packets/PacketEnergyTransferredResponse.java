@@ -9,7 +9,6 @@ import net.minecraftforge.fml.network.NetworkEvent;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
-import java.util.Objects;
 import java.util.function.Supplier;
 
 public class PacketEnergyTransferredResponse {

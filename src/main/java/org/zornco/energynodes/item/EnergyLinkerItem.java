@@ -17,7 +17,7 @@ import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Objects;
 
 public class EnergyLinkerItem extends Item {
@@ -49,7 +49,7 @@ public class EnergyLinkerItem extends Item {
                         updateControllerPosList(context,
                                 blockpos,
                                 otherPos,
-                                blockState1.getValue(EnergyNodeBlock.PROP_INOUT) ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
+                                blockState1.getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
                                 tile1,
                                 tile2);
                     } else {
@@ -79,16 +79,16 @@ public class EnergyLinkerItem extends Item {
     private void updateControllerPosList(@Nonnull ItemUseContext context,
                                          BlockPos blockpos,
                                          BlockPos otherPos,
-                                         List<BlockPos> list,
+                                         HashMap<BlockPos, Integer> list,
                                          EnergyControllerTile tile1,
                                          EnergyNodeTile nodeTile) {
-        if (list.contains(otherPos)) {
+        if (list.containsKey(otherPos)) {
             list.remove(otherPos);
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
             SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(otherPos));
         } else {
-            list.add(otherPos);
+            list.put(otherPos, 0);
             nodeTile.controllerPos = blockpos;
             nodeTile.energyStorage.setController(tile1);
             SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(otherPos));

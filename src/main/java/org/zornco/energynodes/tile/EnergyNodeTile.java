@@ -5,8 +5,10 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.common.capabilities.Capability;
@@ -42,6 +44,17 @@ public class EnergyNodeTile extends TileEntity {
     }
 
     @Override
+    public void onLoad() {
+        if (level != null && !level.isClientSide)
+        {
+            MinecraftServer server = level.getServer();
+            if (server != null) {
+                server.tell(new TickDelayedTask(server.getTickCount() + 5, this::LoadConnectedTiles));
+            }
+        }
+    }
+
+    @Override
     public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
         super.load(state, tag);
         if (tag.get(NBT_CONTROLLER_POS_KEY) != null)
@@ -49,10 +62,10 @@ public class EnergyNodeTile extends TileEntity {
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(blockPosINBTPair -> this.controllerPos = blockPosINBTPair.getFirst());
         if (tag.get(NBT_CONNECTED_TILES_KEY) != null)
-            Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
+            Utils.BLOCK_POS_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(blockPos -> connectedTiles.put(blockPos,
-                            Objects.requireNonNull(getLevel()).getBlockEntity(blockPos))));
+                            null)));
     }
 
     @Nonnull
@@ -64,7 +77,7 @@ public class EnergyNodeTile extends TileEntity {
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(NBT_CONTROLLER_POS_KEY, inbt));
         if (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
-            Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
+            Utils.BLOCK_POS_LIST_CODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(NBT_CONNECTED_TILES_KEY, inbt));
         return tag;
@@ -104,7 +117,30 @@ public class EnergyNodeTile extends TileEntity {
 
     @Override
     public void setRemoved() {
+        if (this.level != null && this.controllerPos != null) {
+            EnergyControllerTile controllerTile = (EnergyControllerTile)level.getBlockEntity(this.controllerPos);
+            if (controllerTile != null) {
+                controllerTile.connectedOutputNodes.remove(this.getBlockPos());
+                controllerTile.connectedInputNodes.remove(this.getBlockPos());
+            }
+        }
         energy.invalidate();
         super.setRemoved();
+    }
+
+    private void LoadConnectedTiles() {
+        if (level != null) {
+
+            if (controllerPos != null && level.isLoaded(controllerPos)) {
+                this.energyStorage.setController((EnergyControllerTile) level.getBlockEntity(controllerPos));
+            }
+            for (BlockPos ctPos : connectedTiles.keySet()) {
+                if (level.isLoaded(ctPos)) {
+                    connectedTiles.replace(ctPos, level.getBlockEntity(ctPos));
+                } else {
+                    connectedTiles.remove(ctPos);
+                }
+            }
+        }
     }
 }

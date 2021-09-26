@@ -44,8 +44,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     protected float lastTransferRateSent = 0;
     protected int ticksSinceLastTransferRatePacket = 0;
 
-    public List<BlockPos> connectedInputNodes = new ArrayList<>();
-    public List<BlockPos> connectedOutputNodes = new ArrayList<>();
+    public HashMap<BlockPos, Integer> connectedInputNodes = new HashMap<>();
+    public HashMap<BlockPos, Integer> connectedOutputNodes = new HashMap<>();
     public long transferredThisTick;
     private int particleRate;
 
@@ -57,12 +57,12 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
         super.load(state, tag);
-        Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_INPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
+        Utils.BLOCK_POS_INTEGER_MAP_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_INPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
                 .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(listINBTPair -> this.connectedInputNodes = new ArrayList<>(listINBTPair.getFirst()));
-        Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_OUTPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
+                .ifPresent(listINBTPair -> this.connectedInputNodes = (HashMap<BlockPos, Integer>) listINBTPair.getFirst());
+        Utils.BLOCK_POS_INTEGER_MAP_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_OUTPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
                 .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(listINBTPair -> this.connectedOutputNodes = new ArrayList<>(listINBTPair.getFirst()));
+                .ifPresent(listINBTPair -> this.connectedOutputNodes = (HashMap<BlockPos, Integer>) listINBTPair.getFirst());
         this.totalEnergyTransferred = tag.getLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
         this.transferredThisTick = tag.getLong(NBT_TRANSFERRED_THIS_TICK_KEY);
         this.rateLimit = tag.getInt(NBT_RATE_LIMIT_KEY);
@@ -74,10 +74,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public CompoundNBT save(@Nonnull CompoundNBT compound) {
         CompoundNBT tag = super.save(compound);
-        Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedInputNodes)
+        Utils.BLOCK_POS_INTEGER_MAP_CODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedInputNodes)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(inbt -> tag.put(NBT_CONNECTED_INPUT_NODES_KEY, inbt));
-        Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedOutputNodes)
+        Utils.BLOCK_POS_INTEGER_MAP_CODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedOutputNodes)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(inbt -> tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, inbt));
         tag.putLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
@@ -89,30 +89,12 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Nonnull
     @Override
     public CompoundNBT getUpdateTag() {
-        CompoundNBT tag = super.getUpdateTag();
-        Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedInputNodes)
-                .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(inbt -> tag.put(NBT_CONNECTED_INPUT_NODES_KEY, inbt));
-        Utils.LBPCODEC.encodeStart(NBTDynamicOps.INSTANCE, connectedOutputNodes)
-                .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(inbt -> tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, inbt));
-        tag.putLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
-        tag.putLong(NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
-        tag.putInt(NBT_RATE_LIMIT_KEY, this.rateLimit);
-        return tag;
+        return save(new CompoundNBT());
     }
 
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_INPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
-                .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(listINBTPair -> this.connectedInputNodes = new ArrayList<>(listINBTPair.getFirst()));
-        Utils.LBPCODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_OUTPUT_NODES_KEY, Constants.NBT.TAG_INT_ARRAY))
-                .resultOrPartial(EnergyNodes.LOGGER::error)
-                .ifPresent(listINBTPair -> this.connectedOutputNodes = new ArrayList<>(listINBTPair.getFirst()));
-        this.totalEnergyTransferred = tag.getLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
-        this.transferredThisTick = tag.getLong(NBT_TRANSFERRED_THIS_TICK_KEY);
-        this.rateLimit = tag.getInt(NBT_RATE_LIMIT_KEY);
+        load(state, tag);
     }
 
     @Override
@@ -130,10 +112,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     public boolean canReceiveEnergy(EnergyNodeTile nodeTile) {
-        return this.connectedInputNodes.contains(nodeTile.getBlockPos()) || this.connectedOutputNodes.contains(nodeTile.getBlockPos());
+        return this.connectedInputNodes.containsKey(nodeTile.getBlockPos()) || this.connectedOutputNodes.containsKey(nodeTile.getBlockPos());
     }
 
-    public int receiveEnergy(int maxReceive, boolean simulate) {
+    public int receiveEnergy(EnergyNodeTile inputTile, int maxReceive, boolean simulate) {
         if (Objects.requireNonNull(this.level).isClientSide) {
             return 0;
         }
@@ -141,7 +123,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
         float connectedEnergyTilesAmount;
         if (!simulate) {
-            connectedEnergyTilesAmount = this.connectedOutputNodes
+            connectedEnergyTilesAmount = this.connectedOutputNodes.keySet()
                     .stream()
                     .map(blockPos -> (EnergyNodeTile) level.getBlockEntity(blockPos))
                     .filter(Objects::nonNull)
@@ -162,12 +144,13 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         }
 
 
-        for (BlockPos outputBlockPos : this.connectedOutputNodes) {
-            EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(outputBlockPos);
+        for (Map.Entry<BlockPos, Integer> outputEntry : this.connectedOutputNodes.entrySet()) {
+            EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(outputEntry.getKey());
             if (outputTile != null) {
+                int transferredThisTile = 0;
                 for (Map.Entry<BlockPos, TileEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
                     BlockPos outputOffset = tileEntry.getKey();
-                    Direction facing = getFacingFromBlockPos(outputBlockPos, outputOffset);
+                    Direction facing = getFacingFromBlockPos(outputEntry.getKey(), outputOffset);
                     TileEntity otherTile = tileEntry.getValue();
                     int amountReceivedThisBlock = 0;
                     if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
@@ -181,12 +164,19 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                     }
 
                     if (!simulate) {
+                        transferredThisTile += amountReceivedThisBlock;
                         this.totalEnergyTransferred += amountReceivedThisBlock;
                     }
                     amountReceived += amountReceivedThisBlock;
                 }
+                int output = outputEntry.getValue() + transferredThisTile;
+                outputEntry.setValue(output);
+                outputTile.energyStorage.setEnergyStored(output);
             }
         }
+        int input = connectedInputNodes.get(inputTile.getBlockPos()) + amountReceived;
+        connectedInputNodes.replace(inputTile.getBlockPos(), input);
+        inputTile.energyStorage.setEnergyStored(input);
         return amountReceived;
     }
 
@@ -206,13 +196,21 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         if (!this.level.isClientSide) {
             // Compute the FE transfer in this tick by taking the difference between total transfer this
             // tick and the total transfer last tick
-            transferredThisTick = Math.abs(this.totalEnergyTransferred - this.totalEnergyTransferredLastTick);
+            transferredThisTick = Math.abs(this.totalEnergyTransferred);
 
             // Add FE transfer this tick to moving average
             //this.transferRateMovingAverage.add(transferredThisTick);
             //this.transferRate = this.transferRateMovingAverage.getAverage(); // compute average FE/t
-            this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
-
+            //this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
+            connectedOutputNodes.entrySet().forEach(entry -> {
+                entry.setValue(0);
+                ((EnergyNodeTile)Objects.requireNonNull(level.getBlockEntity(entry.getKey()))).energyStorage.setEnergyStored(0);
+            });
+            connectedInputNodes.entrySet().forEach(entry -> {
+                entry.setValue(0);
+                ((EnergyNodeTile)Objects.requireNonNull(level.getBlockEntity(entry.getKey()))).energyStorage.setEnergyStored(0);
+            });
+            this.totalEnergyTransferred = 0;
             if (transferredThisTick > 0) {
                 this.setChanged();
             }
@@ -237,8 +235,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 this.setChanged();
                 //this.checkConnections();
             }
-
-            this.ticks = ++this.ticks % 20;
         }
         else
         {
@@ -246,19 +242,19 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
                 spawnParticles();
             }
-            this.ticks = ++this.ticks % 20;
         }
+        this.ticks = ++this.ticks % 20;
     }
     @OnlyIn(Dist.CLIENT)
     private void spawnParticles() {
         if (connectedInputNodes.size() <= 0) return;
         if (Minecraft.getInstance().player != null && level != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
-            for (BlockPos inputPos : connectedInputNodes) {
+            for (BlockPos inputPos : connectedInputNodes.keySet()) {
                 Vector3d spawn = Vector3d.atCenterOf(inputPos);
                 Vector3d dest = Vector3d.atCenterOf(worldPosition).subtract(spawn).scale(.1);
                 level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }
-            for (BlockPos outputPos : connectedOutputNodes) {
+            for (BlockPos outputPos : connectedOutputNodes.keySet()) {
                 Vector3d spawn = Vector3d.atCenterOf(worldPosition);
                 Vector3d dest = Vector3d.atCenterOf(outputPos).subtract(spawn).scale(.1);
                 level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
