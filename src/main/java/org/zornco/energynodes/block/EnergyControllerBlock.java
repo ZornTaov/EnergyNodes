@@ -21,34 +21,14 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
+
     public EnergyControllerBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(PROP_FACING, Direction.NORTH));
-    }
-
-    @Override
-    public void onRemove(@Nonnull BlockState state, World worldIn, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean isMoving) {
-        EnergyControllerTile tile = (EnergyControllerTile)worldIn.getBlockEntity(pos);
-        if (tile != null && tile.connectedInputNodes.size() != 0) {
-            for (BlockPos nodePos: tile.connectedInputNodes.keySet()) {
-                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
-                if (tile1 != null) {
-                    tile1.controllerPos = null;
-                }
-            }
-        }
-        if (tile != null && tile.connectedOutputNodes.size() != 0) {
-            for (BlockPos nodePos: tile.connectedOutputNodes.keySet()) {
-                EnergyNodeTile tile1 = (EnergyNodeTile)worldIn.getBlockEntity(nodePos);
-                if (tile1 != null) {
-                    tile1.controllerPos = null;
-                }
-            }
-        }
-        super.onRemove(state, worldIn, pos, newState, isMoving);
     }
 
     @Override
@@ -78,7 +58,7 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     }
 
     private static Direction getFacingFromEntity(BlockPos clickedBlock, LivingEntity entity) {
-        Direction facing =  Direction.getNearest(
+        Direction facing = Direction.getNearest(
                 (float) (entity.getX() - clickedBlock.getX()),
                 (float) (entity.getY() - clickedBlock.getY()),
                 (float) (entity.getZ() - clickedBlock.getZ()));

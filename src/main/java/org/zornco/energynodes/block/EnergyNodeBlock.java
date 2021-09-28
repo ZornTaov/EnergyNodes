@@ -72,7 +72,7 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
     }
 
     @Override
-    public void onNeighborChange(BlockState state, IWorldReader world, BlockPos pos, BlockPos neighbor) {
+    public void neighborChanged(BlockState state, World world, BlockPos pos, Block changedBlock, BlockPos neighbor, boolean flags) {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
         {
             EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);

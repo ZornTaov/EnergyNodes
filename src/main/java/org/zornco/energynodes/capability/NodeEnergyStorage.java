@@ -1,6 +1,7 @@
 package org.zornco.energynodes.capability;
 
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.block.EnergyNodeBlock;
@@ -68,6 +69,15 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
             return this.controllerTile.canReceiveEnergy(nodeTile);
         }
         return false;
+    }
+
+    @Nonnull
+    public EnergyNodeTile getNodeTile() {
+        return nodeTile;
+    }
+
+    public BlockPos getLocation() {
+        return this.nodeTile.getBlockPos();
     }
 
     public void setController(EnergyControllerTile controllerTile) {

@@ -7,18 +7,23 @@ import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
+import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EnergyLinkerItem extends Item {
     private static final String NBT_NODE_POS_KEY = "node-pos";
@@ -44,12 +49,30 @@ public class EnergyLinkerItem extends Item {
                 if (tile1 != null) {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
                     BlockState blockState1 = world.getBlockState(otherPos);
-                    EnergyNodeTile tile2 = (EnergyNodeTile)world.getBlockEntity(otherPos);
+                    EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
                     if (tile2 != null) { // TODO: disconnect old controllers if they exist
+                        final EnergyNodeBlock.Flow flowType = blockState1.getValue(EnergyNodeBlock.PROP_INOUT);
+
+                        Set<BlockPos> positions = new HashSet<>();
+                        switch (flowType) {
+                            case IN:
+                                positions = tile1.inputs.stream()
+                                        .map(in -> in.map(storage -> ((NodeEnergyStorage) storage).getLocation()).orElse(null))
+                                        .filter(Objects::nonNull)
+                                        .map(BlockPos::immutable)
+                                        .collect(Collectors.toSet());
+                                break;
+
+                            case OUT:
+                                positions = tile1.outputs.stream()
+                                        .map(out -> out.map(storage -> ((NodeEnergyStorage) storage).getLocation()).orElse(null))
+                                        .filter(Objects::nonNull)
+                                        .map(BlockPos::immutable)
+                                        .collect(Collectors.toSet());
+                                break;
+                        }
+
                         updateControllerPosList(context,
-                                blockpos,
-                                otherPos,
-                                blockState1.getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT ? tile1.connectedOutputNodes : tile1.connectedInputNodes,
                                 tile1,
                                 tile2);
                     } else {
@@ -76,22 +99,56 @@ public class EnergyLinkerItem extends Item {
         return ActionResultType.PASS;
     }
 
-    private void updateControllerPosList(@Nonnull ItemUseContext context,
-                                         BlockPos blockpos,
-                                         BlockPos otherPos,
-                                         HashMap<BlockPos, Integer> list,
-                                         EnergyControllerTile tile1,
-                                         EnergyNodeTile nodeTile) {
-        if (list.containsKey(otherPos)) {
-            list.remove(otherPos);
+    // TODO - Split and transformed into link/unlink
+    private void updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
+        final EnergyNodeBlock.Flow dir = nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
+        Direction hit = context.getClickedFace();
+        LazyOptional<IEnergyStorage> storage = nodeTile.getCapability(CapabilityEnergy.ENERGY, hit);
+
+        BlockPos checkPos = nodeTile.getBlockPos();
+        if (controller.connectedNodes.contains(checkPos)) {
+            controller.connectedNodes.remove(checkPos);
+            switch (dir) {
+                case IN:
+                    controller.inputs.remove(storage);
+                    break;
+                case OUT:
+                    controller.outputs.remove(storage);
+                    break;
+            }
+
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
-            SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(otherPos));
+            nodeTile.energyStorage.setEnergyStored(0);
+            SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(checkPos));
         } else {
-            list.put(otherPos, 0);
-            nodeTile.controllerPos = blockpos;
-            nodeTile.energyStorage.setController(tile1);
-            SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(otherPos));
+            controller.connectedNodes.add(checkPos);
+            switch (dir) {
+                case IN:
+                    controller.inputs.add(storage);
+                    break;
+                case OUT:
+                    controller.outputs.add(storage);
+                    break;
+            }
+
+            storage.addListener(removed -> {
+                controller.connectedNodes.remove(checkPos);
+                switch (dir) {
+                    case IN:
+                        controller.inputs.remove(removed);
+                        break;
+                    case OUT:
+                        controller.outputs.remove(removed);
+                        break;
+                }
+
+                controller.setChanged();
+            });
+
+            nodeTile.controllerPos = controller.getBlockPos();
+            nodeTile.energyStorage.setController(controller);
+            SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
         }
     }
 

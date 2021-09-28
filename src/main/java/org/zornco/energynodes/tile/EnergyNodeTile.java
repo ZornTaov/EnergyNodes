@@ -36,6 +36,7 @@ public class EnergyNodeTile extends TileEntity {
 
     @Nullable
     public BlockPos controllerPos;
+    private int movingAverage;
 
     public EnergyNodeTile() {
         super(Registration.ENERGY_TRANSFER_TILE.get());
@@ -116,16 +117,9 @@ public class EnergyNodeTile extends TileEntity {
     }
 
     @Override
-    public void setRemoved() {
-        if (this.level != null && this.controllerPos != null) {
-            EnergyControllerTile controllerTile = (EnergyControllerTile)level.getBlockEntity(this.controllerPos);
-            if (controllerTile != null) {
-                controllerTile.connectedOutputNodes.remove(this.getBlockPos());
-                controllerTile.connectedInputNodes.remove(this.getBlockPos());
-            }
-        }
+    protected void invalidateCaps() {
+        super.invalidateCaps();
         energy.invalidate();
-        super.setRemoved();
     }
 
     private void LoadConnectedTiles() {
@@ -142,5 +136,13 @@ public class EnergyNodeTile extends TileEntity {
                 }
             }
         }
+    }
+
+    public int getMovingAverage() {
+        return movingAverage;
+    }
+
+    public void setMovingAverage(int average) {
+        this.movingAverage = average;
     }
 }
