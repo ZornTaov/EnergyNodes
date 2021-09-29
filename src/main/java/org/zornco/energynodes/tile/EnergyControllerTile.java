@@ -159,6 +159,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         load(state, tag);
+        loadEnergyCapsFromLevel();
     }
 
     @Override
