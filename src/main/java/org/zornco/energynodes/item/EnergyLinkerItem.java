@@ -17,13 +17,11 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
-import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class EnergyLinkerItem extends Item {
     private static final String NBT_NODE_POS_KEY = "node-pos";
@@ -48,10 +46,10 @@ public class EnergyLinkerItem extends Item {
                 EnergyControllerTile tile1 = (EnergyControllerTile) world.getBlockEntity(blockpos);
                 if (tile1 != null) {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
-                    BlockState blockState1 = world.getBlockState(otherPos);
+                    //BlockState blockState1 = world.getBlockState(otherPos);
                     EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
                     if (tile2 != null) { // TODO: disconnect old controllers if they exist
-                        final EnergyNodeBlock.Flow flowType = blockState1.getValue(EnergyNodeBlock.PROP_INOUT);
+                        /*final EnergyNodeBlock.Flow flowType = blockState1.getValue(EnergyNodeBlock.PROP_INOUT);
 
                         Set<BlockPos> positions = new HashSet<>();
                         switch (flowType) {
@@ -70,7 +68,7 @@ public class EnergyLinkerItem extends Item {
                                         .map(BlockPos::immutable)
                                         .collect(Collectors.toSet());
                                 break;
-                        }
+                        }*/
 
                         updateControllerPosList(context,
                                 tile1,

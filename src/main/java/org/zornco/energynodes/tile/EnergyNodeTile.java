@@ -36,7 +36,6 @@ public class EnergyNodeTile extends TileEntity {
 
     @Nullable
     public BlockPos controllerPos;
-    private int movingAverage;
 
     public EnergyNodeTile() {
         super(Registration.ENERGY_TRANSFER_TILE.get());
@@ -136,13 +135,5 @@ public class EnergyNodeTile extends TileEntity {
                 }
             }
         }
-    }
-
-    public int getMovingAverage() {
-        return movingAverage;
-    }
-
-    public void setMovingAverage(int average) {
-        this.movingAverage = average;
     }
 }

@@ -1,7 +1,6 @@
 package org.zornco.energynodes;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.UnboundedMapCodec;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.Util;
@@ -13,9 +12,8 @@ import net.minecraft.util.text.StringTextComponent;
 import java.util.List;
 
 public class Utils {
-
-    public static final UnboundedMapCodec<BlockPos, Integer> BLOCK_POS_INTEGER_MAP_CODEC = Codec.unboundedMap(BlockPos.CODEC, Codec.INT);
     public static final Codec<List<BlockPos>> BLOCK_POS_LIST_CODEC = Codec.list(BlockPos.CODEC );
+
     public static void sendMessage(PlayerEntity player, String text) {
         ((ServerPlayerEntity)player).sendMessage(new StringTextComponent(text), ChatType.CHAT, Util.NIL_UUID);
     }

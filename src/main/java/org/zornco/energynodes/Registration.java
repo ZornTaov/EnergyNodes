@@ -24,6 +24,8 @@ import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
 
+import javax.annotation.Nonnull;
+
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, EnergyNodes.MOD_ID);
@@ -57,16 +59,19 @@ public class Registration {
     // ================================================================================================================
     //    ITEM BLOCKS
     // ================================================================================================================
+    @SuppressWarnings("unused")
     public static final RegistryObject<Item> ENERGY_CONTROLLER_ITEM =
             ITEMS.register("energy_controller", () ->
                     new BlockItem(ENERGY_CONTROLLER_BLOCK.get(),
                             new Item.Properties().tab(Registration.ITEM_GROUP))
             );
+    @SuppressWarnings("unused")
     public static final RegistryObject<Item> INPUT_NODE_ITEM =
             ITEMS.register("input_node", () ->
                     new BlockItem(INPUT_NODE_BLOCK.get(),
                             new Item.Properties().tab(Registration.ITEM_GROUP))
             );
+    @SuppressWarnings("unused")
     public static final RegistryObject<Item> OUTPUT_NODE_ITEM =
             ITEMS.register("output_node", () ->
                     new BlockItem(OUTPUT_NODE_BLOCK.get(),
@@ -76,10 +81,12 @@ public class Registration {
     // ================================================================================================================
     //    TILE ENTITIES
     // ================================================================================================================
+    @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
             TILES.register("energy_controller", () ->
                     TileEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
                     ).build(null));
+    @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<TileEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
             TILES.register("energy_transfer", () ->
                     TileEntityType.Builder.of(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
@@ -95,6 +102,7 @@ public class Registration {
         NetworkManager.Register();
     }
     public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {
+        @Nonnull
         @Override
         public ItemStack makeIcon() {
             return new ItemStack(Registration.TEST_PAD_ITEM.get());

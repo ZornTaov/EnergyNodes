@@ -12,14 +12,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Utils;
-import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 import mcjty.theoneprobe.api.*;
 
@@ -56,8 +54,8 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
                 if (otherTile != null) {
                     LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
                     if (adjacentStorageOptional.isPresent()) {
-                        IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                                () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));
+                        /*IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
+                                () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));*/
                         if (nodeTile != null) {
                             nodeTile.connectedTiles.put(neighbor, otherTile);
                         }
@@ -72,7 +70,7 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
     }
 
     @Override
-    public void neighborChanged(BlockState state, World world, BlockPos pos, Block changedBlock, BlockPos neighbor, boolean flags) {
+    public void neighborChanged(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
         {
             EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
@@ -85,8 +83,8 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
 
                 LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
                 if (adjacentStorageOptional.isPresent()) {
-                    IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                            () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));
+                    /*IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
+                            () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));*/
                     if (nodeTile != null) {
                         nodeTile.connectedTiles.put(neighbor, otherTile);
                     }

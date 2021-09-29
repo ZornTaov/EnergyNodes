@@ -17,11 +17,8 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tile.EnergyControllerTile;
-import org.zornco.energynodes.tile.EnergyNodeTile;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);

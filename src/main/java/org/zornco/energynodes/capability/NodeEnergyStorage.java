@@ -31,14 +31,12 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
     @Override
     public void deserializeNBT(CompoundNBT nbt) {
         this.energy = nbt.getInt(NBT_ENERGY_KEY);
-
     }
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
         if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.IN) {
             return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
-            //return this.energy;
         }
         return 0;
     }
