@@ -26,6 +26,7 @@ import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.nbt.NbtListCollector;
+import org.zornco.energynodes.particles.EnergyNodeParticleData;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -321,15 +322,20 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             inputs.forEach(input -> input.ifPresent(inputNode -> {
                 BlockPos inputPos = ((NodeEnergyStorage)inputNode).getLocation();
                 Vector3d spawn = Vector3d.atCenterOf(inputPos);
-                Vector3d dest = Vector3d.atCenterOf(worldPosition).subtract(spawn).scale(.1);
-                level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+                Vector3d dest = Vector3d.atCenterOf(worldPosition);
+                EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
+                //Change the below laserPos to lookingAt to have it emit from the laser gun itself
+                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+                //level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
 
             outputs.forEach(output -> output.ifPresent(outputNode -> {
                 BlockPos outputPos = ((NodeEnergyStorage) outputNode).getLocation();
                 Vector3d spawn = Vector3d.atCenterOf(worldPosition);
-                Vector3d dest = Vector3d.atCenterOf(outputPos).subtract(spawn).scale(.1);
-                level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+                Vector3d dest = Vector3d.atCenterOf(outputPos);
+                EnergyNodeParticleData data = new EnergyNodeParticleData(1f, .5f, .1f);
+                //Change the below laserPos to lookingAt to have it emit from the laser gun itself
+                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
         }
     }
