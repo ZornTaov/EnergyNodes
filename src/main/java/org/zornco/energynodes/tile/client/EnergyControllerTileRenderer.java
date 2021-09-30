@@ -1,7 +1,6 @@
 package org.zornco.energynodes.tile.client;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -34,20 +33,27 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
     }
 
     public static class LineTypes extends RenderType {
-        final static boolean ENABLE_DEPTH_WRITING = true;
-        final static boolean ENABLE_COLOUR_COMPONENTS_WRITING = true;
-        final static RenderState.WriteMaskState WRITE_TO_DEPTH_AND_COLOR
-                = new RenderState.WriteMaskState(ENABLE_DEPTH_WRITING, ENABLE_COLOUR_COMPONENTS_WRITING);
-        public static final RenderType THICC_LINES = RenderType.create("lines",
+        public static final RenderType THICC_LINE = RenderType.create("thicc_line",
                 DefaultVertexFormats.POSITION_COLOR,
                 GL11.GL_LINES,
                 256,
                 RenderType.State.builder()
-                        .setLineState(new RenderState.LineState(OptionalDouble.of(3.0)))
+                        .setLineState(new RenderState.LineState(OptionalDouble.of(2.0)))
                         .setLayeringState(VIEW_OFFSET_Z_LAYERING)
                         .setTransparencyState(NO_TRANSPARENCY)
                         .setOutputState(ITEM_ENTITY_TARGET)
-                        .setWriteMaskState(WRITE_TO_DEPTH_AND_COLOR)
+                        .setWriteMaskState(COLOR_DEPTH_WRITE)
+                        .createCompositeState(false));
+        public static final RenderType THICCCCC_LINES = RenderType.create("thicc_lines",
+                DefaultVertexFormats.POSITION_COLOR,
+                GL11.GL_LINE_LOOP,
+                256,
+                RenderType.State.builder()
+                        .setLineState(new RenderState.LineState(OptionalDouble.of(5.0)))
+                        .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                        .setTransparencyState(NO_TRANSPARENCY)
+                        .setOutputState(ITEM_ENTITY_TARGET)
+                        .setWriteMaskState(COLOR_DEPTH_WRITE)
                         .createCompositeState(false));
 
         public LineTypes(String p_i225992_1_, VertexFormat p_i225992_2_, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable p_i225992_7_, Runnable p_i225992_8_) {
@@ -77,22 +83,12 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
 
         if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
             matrixStack.pushPose();
-            // RenderSystem.enableDepthTest();
-            // RenderSystem.shadeModel(7425);
-            // RenderSystem.enableAlphaTest();
-            // RenderSystem.defaultAlphaFunc();
             Vector3d vector3d = Vector3d.atCenterOf(te.getBlockPos());
 
-            final IVertexBuilder lines = buffer.getBuffer(LineTypes.THICC_LINES);
+            final IVertexBuilder lines = buffer.getBuffer(LineTypes.THICC_LINE);
 
-            RenderSystem.pushMatrix();
+            //RenderSystem.pushMatrix();
             matrixStack.translate(0.5F, 0.5, 0.5);
-
-            // RenderSystem.disableTexture();
-            // RenderSystem.disableBlend();
-            RenderSystem.lineWidth(4.0F);
-
-            // bufferbuilder.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION_COLOR);
 
             te.inputs.forEach(input -> input.ifPresent(inputNode -> {
                 Vector3d inputPos = Vector3d.atCenterOf(((NodeEnergyStorage)inputNode).getLocation()).subtract(vector3d);
@@ -105,11 +101,7 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
                 lines.vertex(matrixStack.last().pose(), (float) outputPos.x, (float) outputPos.y, (float) outputPos.z).color(1f, .5f, .1f, 0.5F).endVertex();
             }));
 
-            RenderSystem.popMatrix();
-            //RenderSystem.enableBlend();
-            //RenderSystem.enableTexture();
-            //RenderSystem.shadeModel(7424);
-            //EnergyNodes.LOGGER.info("particle");
+            //RenderSystem.popMatrix();
             matrixStack.popPose();
         }
 

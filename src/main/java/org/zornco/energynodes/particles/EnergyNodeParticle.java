@@ -1,19 +1,18 @@
 package org.zornco.energynodes.particles;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.vector.Vector3d;
-import org.lwjgl.opengl.GL11;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 
 import javax.annotation.Nonnull;
+
+import static org.zornco.energynodes.tile.client.EnergyControllerTileRenderer.LineTypes.THICCCCC_LINES;
 
 public class EnergyNodeParticle extends SpriteTexturedParticle {
     private final Vector3d sourcePos;
@@ -33,44 +32,32 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
     @Override
     public void render(@Nonnull IVertexBuilder vert, @Nonnull ActiveRenderInfo info, float tickDelta) {
         //super.render(vert, info, tickDelta);
-        RenderSystem.pushMatrix();
+        MatrixStack matrixStack = new MatrixStack();
         Vector3d vector3d = info.getPosition();
 
-        double d0 = y;
-        double d2 = x;
-        double d3 = z;
-        Tessellator tessellator = Tessellator.getInstance();
-        GL11.glTranslated(-vector3d.x(), -vector3d.y(), -vector3d.z());
+        matrixStack.translate(-vector3d.x(), -vector3d.y(), -vector3d.z());
 
-        BufferBuilder bufferbuilder = tessellator.getBuilder();
-        RenderSystem.disableTexture();
-        RenderSystem.disableBlend();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.lineWidth(5.0F);
+        IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        IVertexBuilder ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
 
-        bufferbuilder.begin(GL11.GL_LINE_LOOP, DefaultVertexFormats.POSITION_COLOR);
+        renderOctahedron(matrixStack, ivertexbuilder);
 
+        bufferSource.endBatch();
+    }
 
+    private void renderOctahedron(MatrixStack matrixStack, IVertexBuilder ivertexbuilder) {
+        double circumscribedRadius = 0.1;
         Vector3d[] octahedron = new Vector3d[6];
-        double cirumscribedRadius = 0.1;
-        octahedron[0] = new Vector3d(-cirumscribedRadius, 0, 0);
-        octahedron[1] = new Vector3d(cirumscribedRadius, 0, 0);
-        octahedron[2] = new Vector3d(0, -cirumscribedRadius, 0);
-        octahedron[3] = new Vector3d(0, cirumscribedRadius, 0);
-        octahedron[4] = new Vector3d(0, 0, -cirumscribedRadius);
-        octahedron[5] = new Vector3d(0, 0, cirumscribedRadius);
+        octahedron[0] = new Vector3d(-circumscribedRadius, 0, 0);
+        octahedron[1] = new Vector3d(circumscribedRadius, 0, 0);
+        octahedron[2] = new Vector3d(0, -circumscribedRadius, 0);
+        octahedron[3] = new Vector3d(0, circumscribedRadius, 0);
+        octahedron[4] = new Vector3d(0, 0, -circumscribedRadius);
+        octahedron[5] = new Vector3d(0, 0, circumscribedRadius);
         int[] lineLoop1 = {2,4,3,5,2,1,3,0,5,1,4,0,2};
         for (int i: lineLoop1) {
-            bufferbuilder.vertex(x+octahedron[i].x, y+octahedron[i].y, z+octahedron[i].z).color(rCol, gCol, bCol, 1F).endVertex();
+            ivertexbuilder.vertex(matrixStack.last().pose(), (float)(x+octahedron[i].x), (float)(y+octahedron[i].y), (float)(z+octahedron[i].z)).color(rCol, gCol, bCol, 1F).endVertex();
         }
-
-        tessellator.end();
-        RenderSystem.lineWidth(1.0F);
-        RenderSystem.enableBlend();
-        RenderSystem.enableTexture();
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        //EnergyNodes.LOGGER.info("particle");
-        RenderSystem.popMatrix();
     }
 
     @Override
