@@ -40,6 +40,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     protected static final String NBT_TRANSFERRED_THIS_TICK_KEY = "transferred-this-tick";
     protected static final String NBT_RATE_LIMIT_KEY = "rate-limit";
 
+    // TODO - possibly implement tiered controllers/nodes, or use upgrades to increase rateLimit and max distance.
     public static final int UNLIMITED_RATE = -1;
     protected int rateLimit = UNLIMITED_RATE;
 
@@ -160,6 +161,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         load(state, tag);
+        // TODO - needs to be delayed like what happens in onLoad, but for the client side
         loadEnergyCapsFromLevel();
     }
 
@@ -182,6 +184,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     public int receiveEnergy(EnergyNodeTile inputTile, int maxReceive, boolean simulate) {
+        // TODO - double and triple check the correct amount of energy is being transferred!
         if (Objects.requireNonNull(this.level).isClientSide) {
             return 0;
         }
@@ -191,7 +194,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         float connectedEnergyTilesAmount;
         if (!simulate) {
             connectedEnergyTilesAmount = this.outputs.stream().mapToInt(lazy -> lazy.map(storage -> {
-                // todo: let's cheat for now
+                // TODO: let's cheat for now
                 EnergyNodeTile node = ((NodeEnergyStorage) storage).getNodeTile();
                 return node.connectedTiles.values()
                         // TODO: Make another cap for other Lazy storage
@@ -319,12 +322,12 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         if (connectedNodes.size() <= 0) return;
         if (Minecraft.getInstance().player != null && level != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
             // TODO - Particles overhaul once caps are in
+            // TODO - Maybe convert particles into TER code only?
             inputs.forEach(input -> input.ifPresent(inputNode -> {
                 BlockPos inputPos = ((NodeEnergyStorage)inputNode).getLocation();
                 Vector3d spawn = Vector3d.atCenterOf(inputPos);
                 Vector3d dest = Vector3d.atCenterOf(worldPosition);
                 EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
-                //Change the below laserPos to lookingAt to have it emit from the laser gun itself
                 level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
                 //level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
@@ -334,7 +337,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 Vector3d spawn = Vector3d.atCenterOf(worldPosition);
                 Vector3d dest = Vector3d.atCenterOf(outputPos);
                 EnergyNodeParticleData data = new EnergyNodeParticleData(1f, .5f, .1f);
-                //Change the below laserPos to lookingAt to have it emit from the laser gun itself
                 level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
         }
@@ -344,6 +346,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         Set<BlockPos> invalid = new HashSet<>();
         for (BlockPos nodePos : connectedNodes) {
             // load and parse capability references
+            // TODO - what happens if that chunk is not loaded? then inputs and outputs don't get filled!
             if (level != null && level.isLoaded(nodePos)) {
                 final BlockState state = level.getBlockState(nodePos);
                 final TileEntity tn = level.getBlockEntity(nodePos);

@@ -43,6 +43,7 @@ public class Registration {
     // ================================================================================================================
     //    ITEMS
     // ================================================================================================================
+    // TODO - remove for final build?
     public static final RegistryObject<TestPadItem> TEST_PAD_ITEM = ITEMS.register("test_pad", TestPadItem::new);
     public static final RegistryObject<EnergyLinkerItem> ENERGY_LINKER_ITEM = ITEMS.register("energy_linker", EnergyLinkerItem::new);
 

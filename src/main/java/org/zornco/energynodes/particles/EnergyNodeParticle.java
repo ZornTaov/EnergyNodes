@@ -31,6 +31,7 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
 
     @Override
     public void render(@Nonnull IVertexBuilder vert, @Nonnull ActiveRenderInfo info, float tickDelta) {
+        // TODO - Renders as black lines until inventory is opened?!
         //super.render(vert, info, tickDelta);
         MatrixStack matrixStack = new MatrixStack();
         Vector3d vector3d = info.getPosition();
