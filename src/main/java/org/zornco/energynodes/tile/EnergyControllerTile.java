@@ -83,8 +83,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     protected void invalidateCaps() {
         super.invalidateCaps();
 
-        ImmutableSet.copyOf(this.inputs).forEach(LazyOptional::invalidate);
-        ImmutableSet.copyOf(this.outputs).forEach(LazyOptional::invalidate);
+        //ImmutableSet.copyOf(this.inputs).forEach(LazyOptional::invalidate);
+        //ImmutableSet.copyOf(this.outputs).forEach(LazyOptional::invalidate);
     }
 
     @Override
@@ -125,7 +125,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public CompoundNBT save(@Nonnull CompoundNBT compound) {
         CompoundNBT tag = super.save(compound);
-
+        checkConnections();
         tag.put(NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
         tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
 
@@ -162,12 +162,12 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         load(state, tag);
         // TODO - needs to be delayed like what happens in onLoad, but for the client side
-        loadEnergyCapsFromLevel();
+        //loadEnergyCapsFromLevel();
     }
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.worldPosition, 1, this.getUpdateTag());
+        return new SUpdateTileEntityPacket(this.worldPosition, -1, this.getUpdateTag());
     }
 
     @Override
@@ -306,15 +306,20 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
             if (this.ticks % 10 == 0) {
                 this.setChanged();
-                //this.checkConnections();
             }
         } else {
             if (this.ticks % 10 == 0) {
 
+                this.checkConnections();
                 spawnParticles();
             }
         }
         this.ticks = ++this.ticks % 20;
+    }
+
+    private void checkConnections() {
+        if (connectedNodes.size() - inputs.size() - outputs.size() != 0)
+            loadEnergyCapsFromLevel();
     }
 
     @OnlyIn(Dist.CLIENT)
