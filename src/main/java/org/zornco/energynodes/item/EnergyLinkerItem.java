@@ -48,7 +48,8 @@ public class EnergyLinkerItem extends Item {
                     BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
                     //BlockState blockState1 = world.getBlockState(otherPos);
                     EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
-                    if (tile2 != null) { // TODO: disconnect old controllers if they exist
+                    if (tile2 != null && blockpos.distManhattan(otherPos) < 64) { // TODO - check distance limit based on tier maybe?
+                        // TODO: disconnect old controllers if they exist
                         /*final EnergyNodeBlock.Flow flowType = blockState1.getValue(EnergyNodeBlock.PROP_INOUT);
 
                         Set<BlockPos> positions = new HashSet<>();
