@@ -1,17 +1,16 @@
 package org.zornco.energynodes.tile;
 
-import com.google.common.collect.ImmutableSet;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.concurrent.TickDelayedTask;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
@@ -56,6 +55,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public final HashSet<LazyOptional<IEnergyStorage>> outputs = new HashSet<>();
 
     public long transferredThisTick;
+    private AxisAlignedBB renderBounds;
 
     public EnergyControllerTile() {
         super(Registration.ENERGY_CONTROLLER_TILE.get());
@@ -96,6 +96,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             if (server != null) {
                 server.tell(new TickDelayedTask(server.getTickCount(), this::loadEnergyCapsFromLevel));
             }
+            renderBounds = super.getRenderBoundingBox();
         }
     }
 
@@ -361,6 +362,9 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                         invalid.add(nodePos);
                         continue;
                     }
+                    renderBounds = getRenderBoundingBox().expandTowards(nodePos.getX()-this.worldPosition.getX(),
+                            nodePos.getY()-this.worldPosition.getY(),
+                            nodePos.getZ()-this.worldPosition.getZ());
 
                     switch (state.getValue(EnergyNodeBlock.PROP_INOUT)) {
                         case IN:
@@ -368,6 +372,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                             cap.addListener(removed -> {
                                 this.inputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
+                                this.rebuildRenderBounds();
                             });
                             break;
 
@@ -376,6 +381,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                             cap.addListener(removed -> {
                                 this.outputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
+                                this.rebuildRenderBounds();
                             });
                             break;
 
@@ -387,5 +393,18 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         }
 
         connectedNodes.removeAll(invalid);
+    }
+
+    public void rebuildRenderBounds() {
+        this.renderBounds = super.getRenderBoundingBox();
+        for (BlockPos nodePos : connectedNodes) {
+            AxisAlignedBB aabbNodePos = AxisAlignedBB.ofSize(1, 1, 1).move(Vector3d.atCenterOf(nodePos));
+            renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
+        }
+    }
+
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        return renderBounds != null ? renderBounds : super.getRenderBoundingBox();
     }
 }

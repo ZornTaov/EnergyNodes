@@ -149,6 +149,7 @@ public class EnergyLinkerItem extends Item {
             nodeTile.energyStorage.setController(controller);
             SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
         }
+        controller.rebuildRenderBounds();
     }
 
     private void SendSystemMessage(@Nonnull ItemUseContext context, String s) {

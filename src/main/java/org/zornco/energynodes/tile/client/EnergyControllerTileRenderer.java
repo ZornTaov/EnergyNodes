@@ -102,6 +102,8 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
             }));
 
             //RenderSystem.popMatrix();
+            //AxisAlignedBB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
+            //WorldRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
             matrixStack.popPose();
         }
 
@@ -126,6 +128,12 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
         }
         return f3;
     }
+
+    @Override
+    public boolean shouldRenderOffScreen(@Nonnull EnergyControllerTile te) {
+        return Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem;
+    }
+
     public static void register()
     {
         ClientRegistry.bindTileEntityRenderer(Registration.ENERGY_CONTROLLER_TILE.get(), EnergyControllerTileRenderer::new);
