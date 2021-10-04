@@ -16,9 +16,11 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.model.ModelDataManager;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.block.EnergyNodeBlock;
@@ -26,29 +28,18 @@ import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.nbt.NbtListCollector;
 import org.zornco.energynodes.particles.EnergyNodeParticleData;
+import org.zornco.energynodes.tiers.ControllerTiers;
+import org.zornco.energynodes.tiers.IControllerTier;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class EnergyControllerTile extends TileEntity implements ITickableTileEntity {
 
-    // protected static final String NBT_CONNECTED_NODES_KEY = "connected-nodes";
-    protected static final String NBT_CONNECTED_INPUT_NODES_KEY = "connected-input-nodes";
-    protected static final String NBT_CONNECTED_OUTPUT_NODES_KEY = "connected-output-nodes";
-    protected static final String NBT_TOTAL_ENERGY_TRANSFERRED_KEY = "total-energy-transferred";
-    protected static final String NBT_TRANSFERRED_THIS_TICK_KEY = "transferred-this-tick";
-    protected static final String NBT_RATE_LIMIT_KEY = "rate-limit";
-
-    // TODO - possibly implement tiered controllers/nodes, or use upgrades to increase rateLimit and max distance.
-    public static final int UNLIMITED_RATE = -1;
-    protected int rateLimit = UNLIMITED_RATE;
-
     protected int ticks = 0;
     protected long totalEnergyTransferred = 0;
     protected long totalEnergyTransferredLastTick = 0;
-    // protected float transferRate = 0;
-    // protected float lastTransferRateSent = 0;
-    // protected int ticksSinceLastTransferRatePacket = 0;
 
     public final HashSet<BlockPos> connectedNodes = new HashSet<>();
     public final HashSet<LazyOptional<IEnergyStorage>> inputs = new HashSet<>();
@@ -57,8 +48,13 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public long transferredThisTick;
     private AxisAlignedBB renderBounds;
 
+    public IControllerTier tier;
+    private final LazyOptional<IControllerTier> tierLO;
+
     public EnergyControllerTile() {
         super(Registration.ENERGY_CONTROLLER_TILE.get());
+        this.tier = ControllerTiers.BASE;
+        tierLO = LazyOptional.of(() -> this.tier);
     }
 
     @Override
@@ -82,9 +78,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     protected void invalidateCaps() {
         super.invalidateCaps();
-
-        //ImmutableSet.copyOf(this.inputs).forEach(LazyOptional::invalidate);
-        //ImmutableSet.copyOf(this.outputs).forEach(LazyOptional::invalidate);
+        tierLO.invalidate();
     }
 
     @Override
@@ -104,20 +98,19 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
         super.load(state, tag);
         // inputPositions
-        BlockPos.CODEC.listOf().fieldOf(NBT_CONNECTED_INPUT_NODES_KEY).codec()
+        BlockPos.CODEC.listOf().fieldOf(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY).codec()
                 .parse(NBTDynamicOps.INSTANCE, tag)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(connectedNodes::addAll);
 
         // outputs
-        BlockPos.CODEC.listOf().fieldOf(NBT_CONNECTED_OUTPUT_NODES_KEY).codec()
+        BlockPos.CODEC.listOf().fieldOf(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY).codec()
                 .parse(NBTDynamicOps.INSTANCE, tag)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(connectedNodes::addAll);
 
-        this.totalEnergyTransferred = tag.getLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
-        this.transferredThisTick = tag.getLong(NBT_TRANSFERRED_THIS_TICK_KEY);
-        this.rateLimit = tag.getInt(NBT_RATE_LIMIT_KEY);
+        this.totalEnergyTransferred = tag.getLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
+        this.transferredThisTick = tag.getLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY);
 
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
     }
@@ -127,12 +120,11 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public CompoundNBT save(@Nonnull CompoundNBT compound) {
         CompoundNBT tag = super.save(compound);
         checkConnections();
-        tag.put(NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
-        tag.put(NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
+        tag.put(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
+        tag.put(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
 
-        tag.putLong(NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
-        tag.putLong(NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
-        tag.putInt(NBT_RATE_LIMIT_KEY, this.rateLimit);
+        tag.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
+        tag.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
         return tag;
     }
 
@@ -162,8 +154,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         load(state, tag);
-        // TODO - needs to be delayed like what happens in onLoad, but for the client side
-        //loadEnergyCapsFromLevel();
     }
 
     @Override
@@ -178,6 +168,15 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             ModelDataManager.requestModelDataRefresh(this);
             this.getLevel().setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
         }
+    }
+
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, final @Nullable Direction side) {
+        if (cap == Registration.TIER_CAPABILITY)
+            return tierLO.cast();
+
+        return super.getCapability(cap, side);
     }
 
     public boolean canReceiveEnergy(EnergyNodeTile nodeTile) {
@@ -225,7 +224,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                         if (adjacentStorageOptional.isPresent()) {
                             IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
                                     () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));
-                            int amountToSend = (int) ((this.rateLimit == UNLIMITED_RATE ? maxReceive : Math.min(maxReceive, this.rateLimit)) / connectedEnergyTilesAmount);
+                            int amountToSend = (int) ((this.tier.getMaxTransfer() == EnergyNodeConstants.UNLIMITED_RATE ? maxReceive / connectedEnergyTilesAmount : Math.min(maxReceive, this.tier.getMaxTransfer())) / connectedEnergyTilesAmount);
                             amountReceivedThisBlock = adjacentStorage.receiveEnergy(amountToSend, simulate);
                         }
                     }
@@ -269,11 +268,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             // tick and the total transfer last tick
             transferredThisTick = Math.abs(this.totalEnergyTransferred);
 
-            // Add FE transferred this tick to moving average
-            // this.transferRateMovingAverage.add(transferredThisTick);
-            // this.transferRate = this.transferRateMovingAverage.getAverage(); // compute average FE/t
-            // this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
-
             inputs.forEach(opt -> opt.ifPresent(storage -> {
                 final NodeEnergyStorage s = (NodeEnergyStorage) storage;
                 s.setEnergyStored(0);
@@ -288,22 +282,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             if (transferredThisTick > 0) {
                 this.setChanged();
             }
-
-            // Send update packet to all nearby players if required (is the transfer rate changed or has enough
-            // ticks have passed since the last packet?)
-            /*if (((this.transferRate != this.lastTransferRateSent || this.transferRate > 0)
-                    && this.ticksSinceLastTransferRatePacket > UPDATE_PACKET_MIN_TICK_INTERVAL)
-                    || this.ticksSinceLastTransferRatePacket >= UPDATE_PACKET_MAX_TICK_INTERVAL) {
-
-                this.lastTransferRateSent = this.transferRate;
-                this.ticksSinceLastTransferRatePacket = 0;
-
-                EnergyMetersMod.NETWORK.send(
-                        PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(this.pos)),
-                        new PacketEnergyTransferRate(this.pos, this.transferRate, this.totalEnergyTransferred));
-            } else {
-                this.ticksSinceLastTransferRatePacket++;
-            }*/
 
             if (this.ticks % 10 == 0) {
                 this.setChanged();
@@ -335,7 +313,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 Vector3d dest = Vector3d.atCenterOf(worldPosition);
                 EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
                 level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
-                //level.addParticle(ParticleTypes.END_ROD, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
 
             outputs.forEach(output -> output.ifPresent(outputNode -> {

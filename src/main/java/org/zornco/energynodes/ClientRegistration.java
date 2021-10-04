@@ -17,11 +17,14 @@ import org.zornco.energynodes.tile.client.EnergyControllerTileRenderer;
 
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientRegistration {
+    // ================================================================================================================
+    //    Registries
+    // ================================================================================================================
     public static final DeferredRegister<ParticleType<?>> PARTICLE = DeferredRegister.create(ForgeRegistries.PARTICLE_TYPES, EnergyNodes.MOD_ID);
+
     // ================================================================================================================
     //    Particles
     // ================================================================================================================
-
     public static RegistryObject<EnergyNodeParticleType> ENERGY = PARTICLE.register("energy", EnergyNodeParticleType::new);
 
     @SubscribeEvent

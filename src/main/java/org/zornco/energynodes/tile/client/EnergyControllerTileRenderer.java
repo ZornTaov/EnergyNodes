@@ -87,7 +87,6 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
 
             final IVertexBuilder lines = buffer.getBuffer(LineTypes.THICC_LINE);
 
-            //RenderSystem.pushMatrix();
             matrixStack.translate(0.5F, 0.5, 0.5);
 
             te.inputs.forEach(input -> input.ifPresent(inputNode -> {
@@ -101,7 +100,6 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
                 lines.vertex(matrixStack.last().pose(), (float) outputPos.x, (float) outputPos.y, (float) outputPos.z).color(1f, .5f, .1f, 0.5F).endVertex();
             }));
 
-            //RenderSystem.popMatrix();
             //AxisAlignedBB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
             //WorldRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
             matrixStack.popPose();

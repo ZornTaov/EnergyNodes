@@ -15,6 +15,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
+import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
@@ -28,8 +29,6 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class EnergyNodeTile extends TileEntity {
-    private static final String NBT_CONTROLLER_POS_KEY = "controller-pos";
-    private static final String NBT_CONNECTED_TILES_KEY = "connected-tiles";
     public NodeEnergyStorage energyStorage;
     private final LazyOptional<NodeEnergyStorage> energy;
     public final HashMap<BlockPos,TileEntity> connectedTiles = new HashMap<>();
@@ -57,12 +56,12 @@ public class EnergyNodeTile extends TileEntity {
     @Override
     public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
         super.load(state, tag);
-        if (tag.get(NBT_CONTROLLER_POS_KEY) != null)
-            BlockPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag.get(NBT_CONTROLLER_POS_KEY))
+        if (tag.get(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY) != null)
+            BlockPos.CODEC.decode(NBTDynamicOps.INSTANCE, tag.get(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(blockPosINBTPair -> this.controllerPos = blockPosINBTPair.getFirst());
-        if (tag.get(NBT_CONNECTED_TILES_KEY) != null)
-            Utils.BLOCK_POS_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
+        if (tag.get(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY) != null)
+            Utils.BLOCK_POS_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(blockPos -> connectedTiles.put(blockPos,
                             null)));
@@ -75,11 +74,11 @@ public class EnergyNodeTile extends TileEntity {
         if (controllerPos != null)
             BlockPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, controllerPos)
                     .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(inbt -> tag.put(NBT_CONTROLLER_POS_KEY, inbt));
+                    .ifPresent(inbt -> tag.put(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY, inbt));
         if (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
             Utils.BLOCK_POS_LIST_CODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(inbt -> tag.put(NBT_CONNECTED_TILES_KEY, inbt));
+                    .ifPresent(inbt -> tag.put(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, inbt));
         return tag;
     }
 

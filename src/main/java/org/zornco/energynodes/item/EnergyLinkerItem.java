@@ -13,6 +13,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
@@ -24,7 +25,6 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 public class EnergyLinkerItem extends Item {
-    private static final String NBT_NODE_POS_KEY = "node-pos";
 
     public EnergyLinkerItem() {
         super(new Item.Properties()
@@ -41,56 +41,41 @@ public class EnergyLinkerItem extends Item {
         BlockState blockState = world.getBlockState(blockpos);
         CompoundNBT compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundNBT();
         if (compoundnbt != null) {
-            if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(NBT_NODE_POS_KEY)) {
-
-                EnergyControllerTile tile1 = (EnergyControllerTile) world.getBlockEntity(blockpos);
-                if (tile1 != null) {
-                    BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(NBT_NODE_POS_KEY)));
-                    //BlockState blockState1 = world.getBlockState(otherPos);
-                    EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
-                    if (tile2 != null && blockpos.distManhattan(otherPos) < 64) { // TODO - check distance limit based on tier maybe?
-                        // TODO: disconnect old controllers if they exist
-                        /*final EnergyNodeBlock.Flow flowType = blockState1.getValue(EnergyNodeBlock.PROP_INOUT);
-
-                        Set<BlockPos> positions = new HashSet<>();
-                        switch (flowType) {
-                            case IN:
-                                positions = tile1.inputs.stream()
-                                        .map(in -> in.map(storage -> ((NodeEnergyStorage) storage).getLocation()).orElse(null))
-                                        .filter(Objects::nonNull)
-                                        .map(BlockPos::immutable)
-                                        .collect(Collectors.toSet());
-                                break;
-
-                            case OUT:
-                                positions = tile1.outputs.stream()
-                                        .map(out -> out.map(storage -> ((NodeEnergyStorage) storage).getLocation()).orElse(null))
-                                        .filter(Objects::nonNull)
-                                        .map(BlockPos::immutable)
-                                        .collect(Collectors.toSet());
-                                break;
-                        }*/
-
-                        updateControllerPosList(context,
-                                tile1,
-                                tile2);
-                    } else {
-                        //tile1.connectedInputNodes.remove(otherPos);
-                        SendSystemMessage(context, "Node missing at: " + Utils.getCoordinatesAsString(otherPos));
-                        return ActionResultType.PASS;
-                    }
-                    compoundnbt.remove(NBT_NODE_POS_KEY);
-                    itemstack.setTag(compoundnbt);
-                    return ActionResultType.SUCCESS;
-                } else {
-                    SendSystemMessage(context, "Controller has no Tile?!");
-                    return ActionResultType.PASS;
-                }
-            } else if ((blockState.getBlock() instanceof EnergyNodeBlock)) {
-                compoundnbt.put(NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
-                SendSystemMessage(context, "Starting connection from: " + Utils.getCoordinatesAsString(blockpos));
+            if (blockState.getBlock() instanceof EnergyNodeBlock) {
+                compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
+                // TODO - convert to using lang instead
+                Utils.SendSystemMessage(context, "Starting connection from: " + Utils.getCoordinatesAsString(blockpos));
                 itemstack.setTag(compoundnbt);
                 return ActionResultType.SUCCESS;
+
+            } else if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
+                EnergyControllerTile tile1 = (EnergyControllerTile) world.getBlockEntity(blockpos);
+                BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+                EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
+                if (tile1 == null) {
+                    Utils.SendSystemMessage(context, "Controller has no Tile?!");
+                    return ActionResultType.PASS;
+                }
+                if (tile2 == null) {
+                    Utils.SendSystemMessage(context, "Node missing at: " + Utils.getCoordinatesAsString(otherPos));
+                    return ActionResultType.PASS;
+                }
+                if (blockpos.distManhattan(otherPos) >= tile1.tier.getMaxRange()) {
+                    Utils.SendSystemMessage(context, "Node out of range.");
+                    return ActionResultType.PASS;
+                }
+                if (tile1.connectedNodes.size() >= tile1.tier.getMaxConnections()) {
+                    Utils.SendSystemMessage(context, "Controller has too many connections at.");
+                    return ActionResultType.PASS;
+                }
+
+                updateControllerPosList(context,
+                        tile1,
+                        tile2);
+                compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                itemstack.setTag(compoundnbt);
+                return ActionResultType.SUCCESS;
+
             } else {
                 return super.useOn(context);
             }
@@ -99,7 +84,7 @@ public class EnergyLinkerItem extends Item {
     }
 
     // TODO - Split and transformed into link/unlink
-    private void updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
+    private static void updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
         final EnergyNodeBlock.Flow dir = nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
         Direction hit = context.getClickedFace();
         LazyOptional<IEnergyStorage> storage = nodeTile.getCapability(CapabilityEnergy.ENERGY, hit);
@@ -119,7 +104,7 @@ public class EnergyLinkerItem extends Item {
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
             nodeTile.energyStorage.setEnergyStored(0);
-            SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(checkPos));
+            Utils.SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(checkPos));
         } else {
             controller.connectedNodes.add(checkPos);
             switch (dir) {
@@ -147,14 +132,9 @@ public class EnergyLinkerItem extends Item {
 
             nodeTile.controllerPos = controller.getBlockPos();
             nodeTile.energyStorage.setController(controller);
-            SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
+            Utils.SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
         }
         controller.rebuildRenderBounds();
     }
 
-    private void SendSystemMessage(@Nonnull ItemUseContext context, String s) {
-        if (!context.getLevel().isClientSide) {
-            Utils.sendSystemMessage(context.getPlayer(), s);
-        }
-    }
 }
