@@ -61,20 +61,18 @@ public class EnergyLinkerItem extends Item {
                     return ActionResultType.PASS;
                 }
                 if (blockpos.distManhattan(otherPos) >= tile1.tier.getMaxRange()) {
-                    Utils.SendSystemMessage(context, "Node out of range.");
-                    return ActionResultType.PASS;
-                }
-                if (tile1.connectedNodes.size() >= tile1.tier.getMaxConnections()) {
-                    Utils.SendSystemMessage(context, "Controller has too many connections at.");
+                    Utils.SendSystemMessage(context, "Node out of range, limit: " + tile1.tier.getMaxRange());
                     return ActionResultType.PASS;
                 }
 
-                updateControllerPosList(context,
+                ActionResultType result = updateControllerPosList(context,
                         tile1,
                         tile2);
-                compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
-                itemstack.setTag(compoundnbt);
-                return ActionResultType.SUCCESS;
+                if (result == ActionResultType.SUCCESS) {
+                    compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                    itemstack.setTag(compoundnbt);
+                }
+                return result;
 
             } else {
                 return super.useOn(context);
@@ -84,7 +82,7 @@ public class EnergyLinkerItem extends Item {
     }
 
     // TODO - Split and transformed into link/unlink
-    private static void updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
+    private static ActionResultType updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
         final EnergyNodeBlock.Flow dir = nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
         Direction hit = context.getClickedFace();
         LazyOptional<IEnergyStorage> storage = nodeTile.getCapability(CapabilityEnergy.ENERGY, hit);
@@ -106,6 +104,10 @@ public class EnergyLinkerItem extends Item {
             nodeTile.energyStorage.setEnergyStored(0);
             Utils.SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(checkPos));
         } else {
+            if (controller.connectedNodes.size() >= controller.tier.getMaxConnections()) {
+                Utils.SendSystemMessage(context, "Controller has too many connections, limit: " + controller.tier.getMaxConnections());
+                return ActionResultType.PASS;
+            }
             controller.connectedNodes.add(checkPos);
             switch (dir) {
                 case IN:
@@ -135,6 +137,7 @@ public class EnergyLinkerItem extends Item {
             Utils.SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
         }
         controller.rebuildRenderBounds();
+        return ActionResultType.SUCCESS;
     }
 
 }
