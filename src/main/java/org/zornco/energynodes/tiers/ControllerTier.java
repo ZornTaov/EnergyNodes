@@ -1,32 +1,46 @@
 package org.zornco.energynodes.tiers;
 
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.ForgeRegistryEntry;
+import org.zornco.energynodes.Registration;
 
 import javax.annotation.Nonnull;
 import java.util.Locale;
 
-public class ControllerTier implements IControllerTier {
+public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implements IControllerTier {
+    private String name;
     private int maxTransfer;
     private int maxConnections;
     private int maxRange;
 
     public ControllerTier()
     {
-        this(0,0,0);
+        this(Registration.BASE.get());
     }
 
-    ControllerTier(int maxTransfer, int maxConnections, int maxRange) {
+    public ControllerTier(IControllerTier tier) {
+        this.setTier(tier);
+    }
+
+    public ControllerTier(String name, int maxTransfer, int maxConnections, int maxRange) {
+        this.name = name;
         this.maxTransfer = maxTransfer;
         this.maxConnections = maxConnections;
         this.maxRange = maxRange;
     }
 
+    @Nonnull
+    public static ControllerTier getTierFromString(String name) {
+        return Registration.TIERS.getEntries()
+                .stream()
+                .map(RegistryObject::get)
+                .filter(tier -> tier.getSerializedName().contains(name))
+                .findFirst()
+                .orElse(Registration.BASE.get());
+    }
+
     public void setTier(IControllerTier newTier) {
+        this.name = newTier.getSerializedName();
         this.maxTransfer = newTier.getMaxTransfer();
         this.maxConnections = newTier.getMaxConnections();
         this.maxRange = newTier.getMaxRange();
@@ -50,6 +64,6 @@ public class ControllerTier implements IControllerTier {
     @Nonnull
     @Override
     public String getSerializedName() {
-        return getClass().getName().toLowerCase(Locale.ROOT);
+        return name.toLowerCase(Locale.ROOT);
     }
 }

@@ -40,9 +40,9 @@ public class EnergyNodeParticleData implements IParticleData {
         }
     };
 
-    public Float r;
-    public Float g;
-    public Float b;
+    public final Float r;
+    public final Float g;
+    public final Float b;
 
     public EnergyNodeParticleData(Float r, Float g, Float b) {
         this.r = r;

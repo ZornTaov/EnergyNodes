@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class EnergyNodeTile extends TileEntity {
-    public NodeEnergyStorage energyStorage;
+    public final NodeEnergyStorage energyStorage;
     private final LazyOptional<NodeEnergyStorage> energy;
     public final HashMap<BlockPos,TileEntity> connectedTiles = new HashMap<>();
 

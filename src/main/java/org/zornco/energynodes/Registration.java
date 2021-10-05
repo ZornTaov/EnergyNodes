@@ -16,27 +16,26 @@ import net.minecraftforge.common.ToolType;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryBuilder;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.TestPadItem;
+import org.zornco.energynodes.item.TierUpgradeItem;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.tiers.ControllerTier;
-import org.zornco.energynodes.tiers.ControllerTiers;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
 
 import javax.annotation.Nonnull;
+import java.util.*;
 
-@Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
     // ================================================================================================================
     //    Registries
@@ -45,7 +44,18 @@ public class Registration {
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, EnergyNodes.MOD_ID);
     private static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, EnergyNodes.MOD_ID);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, EnergyNodes.MOD_ID);
+    public static final DeferredRegister<ControllerTier> TIERS = DeferredRegister.create(ControllerTier.class, EnergyNodes.MOD_ID);
+    public static final RegistryObject<ControllerTier> BASE;
+    public static final RegistryObject<ControllerTier> ADVANCED;
+    public static final RegistryObject<ControllerTier> EXPERT;
+    public static final RegistryObject<ControllerTier> MAX;
 
+    static {
+        TIERS.makeRegistry("tiers",
+                () -> new RegistryBuilder<ControllerTier>()
+                        .setType(ControllerTier.class)
+                        .tagFolder("tiers"));
+    }
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
@@ -60,6 +70,32 @@ public class Registration {
     // TODO - remove for final build?
     public static final RegistryObject<TestPadItem> TEST_PAD_ITEM = ITEMS.register("test_pad", TestPadItem::new);
     public static final RegistryObject<EnergyLinkerItem> ENERGY_LINKER_ITEM = ITEMS.register("energy_linker", EnergyLinkerItem::new);
+
+    //public static RegistryObject<TierUpgradeItem> TIER_UPGRADE_BASE_ITEM;
+    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_ADVANCED_ITEM;
+    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_EXPERT_ITEM;
+    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_MAX_ITEM;
+
+    static {
+        ControllerTier base = new ControllerTier("base", 2000, 2, 16);
+        ControllerTier advanced = new ControllerTier("advanced", 200000, 4, 32);
+        ControllerTier expert = new ControllerTier("expert", 20000000, 8, 64);
+        ControllerTier max = new ControllerTier("max", EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
+        BASE = TIERS.register("tier_base", () -> base);
+        ADVANCED = TIERS.register("tier_advanced", () -> advanced);
+        EXPERT = TIERS.register("tier_expert", () -> expert);
+        MAX = TIERS.register("tier_max", () -> max);
+        //TIER_UPGRADE_BASE_ITEM = registerTierUpgrade("base", base);
+        TIER_UPGRADE_ADVANCED_ITEM = registerTierUpgrade("advanced", advanced);
+        TIER_UPGRADE_EXPERT_ITEM = registerTierUpgrade("expert", expert);
+        TIER_UPGRADE_MAX_ITEM = registerTierUpgrade("max", max);
+    }
+    public static final ArrayList<RegistryObject<TierUpgradeItem>> TIER_UPGRADES = new ArrayList<>(Arrays.asList(
+            //TIER_UPGRADE_BASE_ITEM,
+            TIER_UPGRADE_ADVANCED_ITEM,
+            TIER_UPGRADE_EXPERT_ITEM,
+            TIER_UPGRADE_MAX_ITEM
+    ));
 
     // ================================================================================================================
     //    BLOCKS
@@ -110,37 +146,41 @@ public class Registration {
     // ================================================================================================================
     //    CAPABILITIES
     // ================================================================================================================
+    @SuppressWarnings("CanBeFinal")
     @CapabilityInject(IControllerTier.class)
     public static Capability<IControllerTier> TIER_CAPABILITY = null;
 
     public static void register()
     {
         CapabilityManager.INSTANCE.register(IControllerTier.class, new Capability.IStorage<IControllerTier>()
+            {
+                @Override
+                public INBT writeNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side)
                 {
-                    @Override
-                    public INBT writeNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side)
-                    {
-                        return StringNBT.valueOf(instance.getSerializedName());
-                    }
+                    return StringNBT.valueOf(instance.getSerializedName());
+                }
 
-                    @Override
-                    public void readNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side, INBT nbt)
-                    {
-                        if (!(instance instanceof ControllerTier))
-                            throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
-                        ((ControllerTier)instance).setTier(ControllerTiers.CONTROLLER_TIERS.getOrDefault(nbt.getAsString(), ControllerTiers.BASE));
-                    }
-                },
-                ControllerTier::new);
+                @Override
+                public void readNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side, INBT nbt)
+                {
+                    if (!(instance instanceof ControllerTier))
+                        throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
+                    instance.setTier(ControllerTier.getTierFromString(nbt.getAsString()));
+                }
+            },
+            ControllerTier::new);
+    }
+    private static RegistryObject<TierUpgradeItem> registerTierUpgrade(String name, ControllerTier tier) {
+        return ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier));
     }
 
     public static void init(IEventBus modEventBus) {
+        TIERS.register(modEventBus);
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         TILES.register(modEventBus);
         ENTITIES.register(modEventBus);
         ClientRegistration.PARTICLE.register(modEventBus);
-
         NetworkManager.Register();
     }
     public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {

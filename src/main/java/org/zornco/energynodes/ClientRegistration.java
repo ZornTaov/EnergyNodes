@@ -25,7 +25,7 @@ public class ClientRegistration {
     // ================================================================================================================
     //    Particles
     // ================================================================================================================
-    public static RegistryObject<EnergyNodeParticleType> ENERGY = PARTICLE.register("energy", EnergyNodeParticleType::new);
+    public static final RegistryObject<EnergyNodeParticleType> ENERGY = PARTICLE.register("energy", EnergyNodeParticleType::new);
 
     @SubscribeEvent
     public static void init(FMLClientSetupEvent event) {

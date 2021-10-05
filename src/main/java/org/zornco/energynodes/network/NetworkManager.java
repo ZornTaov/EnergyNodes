@@ -6,6 +6,7 @@ import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredRequest;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
+import org.zornco.energynodes.network.packets.PacketSyncController;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import java.util.Objects;
@@ -23,11 +24,14 @@ public class NetworkManager {
     {
         INSTANCE.registerMessage(0, PacketEnergyTransferredRequest.class,PacketEnergyTransferredRequest::encode, PacketEnergyTransferredRequest::new, PacketEnergyTransferredRequest::handle);
         INSTANCE.registerMessage(1, PacketEnergyTransferredResponse.class,PacketEnergyTransferredResponse::encode, PacketEnergyTransferredResponse::new, PacketEnergyTransferredResponse::handle);
+        INSTANCE.registerMessage(2, PacketSyncController.class, PacketSyncController::encode, PacketSyncController::new, PacketSyncController::handle);
     }
 
     static long lastEnergyTransferredRequest = -1;
     public static void RequestEnergyTransferred(EnergyControllerTile te, int interval) {
-        if (lastEnergyTransferredRequest == -1 || Objects.requireNonNull(te.getLevel()).getGameTime() - lastEnergyTransferredRequest >= interval)
+        if (lastEnergyTransferredRequest == -1 || Objects.requireNonNull(te.getLevel()).getGameTime() - lastEnergyTransferredRequest >= interval) {
+            lastEnergyTransferredRequest = interval;
             INSTANCE.sendToServer(new PacketEnergyTransferredRequest(te));
+        }
     }
 }

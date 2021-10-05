@@ -9,4 +9,6 @@ public interface IControllerTier extends IStringSerializable {
     int getMaxConnections();
 
     int getMaxRange();
+
+    void setTier(IControllerTier tier);
 }

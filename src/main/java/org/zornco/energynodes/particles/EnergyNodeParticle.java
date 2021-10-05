@@ -63,7 +63,7 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
 
     @Override
     public void tick() {
-        //Just in case something goes weird, we remove the particle if its been around too long.
+        //Just in case something goes weird, we remove the particle if it has been around too long.
         if (this.age++ >= this.lifetime) {
             this.remove();
         }

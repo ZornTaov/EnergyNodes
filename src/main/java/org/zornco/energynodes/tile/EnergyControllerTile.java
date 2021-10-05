@@ -20,6 +20,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fml.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
@@ -28,7 +29,7 @@ import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.nbt.NbtListCollector;
 import org.zornco.energynodes.particles.EnergyNodeParticleData;
-import org.zornco.energynodes.tiers.ControllerTiers;
+import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 
 import javax.annotation.Nonnull;
@@ -49,11 +50,11 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     private AxisAlignedBB renderBounds;
 
     public IControllerTier tier;
-    private final LazyOptional<IControllerTier> tierLO;
+    private LazyOptional<IControllerTier> tierLO;
 
     public EnergyControllerTile() {
         super(Registration.ENERGY_CONTROLLER_TILE.get());
-        this.tier = ControllerTiers.BASE;
+        this.tier = new ControllerTier();
         tierLO = LazyOptional.of(() -> this.tier);
     }
 
@@ -111,7 +112,12 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
         this.totalEnergyTransferred = tag.getLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY);
         this.transferredThisTick = tag.getLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY);
-
+        this.tier.setTier(Registration.TIERS.getEntries()
+                .stream()
+                .map(RegistryObject::get)
+                .filter(tier -> tier.getSerializedName().equals(tag.getString(EnergyNodeConstants.NBT_TIER)))
+                .findFirst()
+                .orElse(Registration.BASE.get()));
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
     }
 
@@ -125,6 +131,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
         tag.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
         tag.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
+        tag.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
         return tag;
     }
 
@@ -383,5 +390,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
         return renderBounds != null ? renderBounds : super.getRenderBoundingBox();
+    }
+
+    public void setTier(IControllerTier tier) {
+        this.tier = tier;
+        this.tierLO = LazyOptional.of(() -> tier);
     }
 }
