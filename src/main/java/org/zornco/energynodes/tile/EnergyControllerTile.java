@@ -244,7 +244,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         }
 
         if (!simulate) {
-            inputTile.energyStorage.setEnergyStored(amountReceived);
+            inputTile.energyStorage.setEnergyStored(inputTile.energyStorage.getEnergyStored() + amountReceived);
         }
 
         return amountReceived;
