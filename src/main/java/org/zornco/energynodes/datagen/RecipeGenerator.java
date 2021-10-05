@@ -17,6 +17,9 @@ public class RecipeGenerator extends RecipeProvider {
     @Override
     protected void buildShapelessRecipes(@Nonnull Consumer<IFinishedRecipe> consumer) {
 
+        // ================================================================================================================
+        //    BLOCKS
+        // ================================================================================================================
         ShapedRecipeBuilder.shaped(Registration.ENERGY_CONTROLLER_ITEM.get(), 1)
                 .pattern("SSS")
                 .pattern("HGH")
@@ -45,6 +48,10 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('s', Tags.Items.STRING)
                 .unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH))
                 .save(consumer);
+
+        // ================================================================================================================
+        //    ITEMS
+        // ================================================================================================================
         ShapedRecipeBuilder.shaped(Registration.ENERGY_LINKER_ITEM.get(), 1)
                 .pattern(" R ")
                 .pattern("SGS")
