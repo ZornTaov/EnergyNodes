@@ -21,7 +21,7 @@ public class DataGenerators {
 
     private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
         // TODO - add recipes for blocks and linker
-
+        generator.addProvider(new RecipeGenerator(generator));
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
