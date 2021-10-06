@@ -77,10 +77,10 @@ public class Registration {
     public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_MAX_ITEM;
 
     static {
-        ControllerTier base = new ControllerTier("base", 2000, 2, 16);
-        ControllerTier advanced = new ControllerTier("advanced", 200000, 4, 32);
-        ControllerTier expert = new ControllerTier("expert", 20000000, 8, 64);
-        ControllerTier max = new ControllerTier("max", EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
+        ControllerTier base = new ControllerTier("base", 0, 2000, 2, 16);
+        ControllerTier advanced = new ControllerTier("advanced", 1, 200000, 4, 32);
+        ControllerTier expert = new ControllerTier("expert", 2, 20000000, 8, 64);
+        ControllerTier max = new ControllerTier("max", 100, EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
         BASE = TIERS.register("tier_base", () -> base);
         ADVANCED = TIERS.register("tier_advanced", () -> advanced);
         EXPERT = TIERS.register("tier_expert", () -> expert);

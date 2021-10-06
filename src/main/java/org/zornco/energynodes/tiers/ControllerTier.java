@@ -9,6 +9,7 @@ import java.util.Locale;
 
 public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implements IControllerTier {
     private String name;
+    private int level;
     private int maxTransfer;
     private int maxConnections;
     private int maxRange;
@@ -22,8 +23,9 @@ public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implement
         this.setTier(tier);
     }
 
-    public ControllerTier(String name, int maxTransfer, int maxConnections, int maxRange) {
+    public ControllerTier(String name, int level, int maxTransfer, int maxConnections, int maxRange) {
         this.name = name;
+        this.level = level;
         this.maxTransfer = maxTransfer;
         this.maxConnections = maxConnections;
         this.maxRange = maxRange;
@@ -47,6 +49,11 @@ public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implement
     }
 
     @Override
+    public int getLevel() {
+        return level;
+    }
+
+    @Override
     public int getMaxTransfer() {
         return maxTransfer;
     }
@@ -66,4 +73,5 @@ public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implement
     public String getSerializedName() {
         return name.toLowerCase(Locale.ROOT);
     }
+
 }

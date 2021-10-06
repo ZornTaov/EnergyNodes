@@ -4,6 +4,8 @@ import net.minecraft.util.IStringSerializable;
 
 public interface IControllerTier extends IStringSerializable {
 
+    int getLevel();
+
     int getMaxTransfer();
 
     int getMaxConnections();

@@ -47,7 +47,7 @@ public class TierUpgradeItem extends Item {
             return ActionResultType.FAIL;
         }
         EnergyControllerTile controller = (EnergyControllerTile) tile;
-        if (controller.tier == this.tier) {
+        if (controller.tier.getLevel() >= this.tier.getLevel()) {
             return ActionResultType.PASS;
         }
         controller.setTier(this.tier);
