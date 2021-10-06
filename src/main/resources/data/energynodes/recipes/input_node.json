@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "C s",
+    "SSS"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:comparator"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "s": {
+      "tag": "forge:string"
+    }
+  },
+  "result": {
+    "item": "energynodes:input_node"
+  }
+}

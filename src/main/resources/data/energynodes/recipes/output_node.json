@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "s R",
+    "SSS"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:repeater"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "s": {
+      "tag": "forge:string"
+    }
+  },
+  "result": {
+    "item": "energynodes:output_node"
+  }
+}

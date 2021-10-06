@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "SDS",
+    "BBB"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "D": {
+      "item": "minecraft:diamond"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "B": {
+      "item": "minecraft:stone_button"
+    }
+  },
+  "result": {
+    "item": "energynodes:tier_upgrade_advanced"
+  }
+}

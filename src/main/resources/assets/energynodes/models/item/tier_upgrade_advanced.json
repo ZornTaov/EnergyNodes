@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "energynodes:item/tier_upgrade_advanced"
+  }
+}

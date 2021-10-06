@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " R ",
+    "SGS",
+    "SBS"
+  ],
+  "key": {
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "G": {
+      "tag": "forge:glass_panes"
+    },
+    "S": {
+      "tag": "forge:ingots/iron"
+    },
+    "B": {
+      "item": "minecraft:stone_button"
+    }
+  },
+  "result": {
+    "item": "energynodes:energy_linker"
+  }
+}

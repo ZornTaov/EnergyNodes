@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "SSS",
+    "HGH",
+    "SCS"
+  ],
+  "key": {
+    "G": {
+      "tag": "forge:glass_panes"
+    },
+    "C": {
+      "item": "minecraft:comparator"
+    },
+    "H": {
+      "item": "minecraft:tripwire_hook"
+    },
+    "S": {
+      "tag": "forge:stone"
+    }
+  },
+  "result": {
+    "item": "energynodes:energy_controller"
+  }
+}

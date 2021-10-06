@@ -13,20 +13,21 @@ public class DataGenerators {
     @SubscribeEvent
     public static void gatherData(GatherDataEvent event) {
         if (event.includeServer())
-            registerServerProviders(event.getGenerator(), event);
+            registerServerProviders(event.getGenerator());
 
         if (event.includeClient())
             registerClientProviders(event.getGenerator(), event);
     }
 
-    private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
-        // TODO - add recipes for blocks and linker
+    private static void registerServerProviders(DataGenerator generator) {
         generator.addProvider(new RecipeGenerator(generator));
+        generator.addProvider(new LootTableGenerator(generator));
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
         ExistingFileHelper helper = event.getExistingFileHelper();
         generator.addProvider(new BlockStateGenerator(generator, helper));
         generator.addProvider(new ItemStateGenerator(generator, helper));
+        generator.addProvider(new LangGenerator(generator));
     }
 }
