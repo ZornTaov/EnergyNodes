@@ -24,6 +24,7 @@ import net.minecraftforge.registries.RegistryBuilder;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
+import org.zornco.energynodes.item.SageManifestItem;
 import org.zornco.energynodes.item.TestPadItem;
 import org.zornco.energynodes.item.TierUpgradeItem;
 import org.zornco.energynodes.network.NetworkManager;
@@ -170,6 +171,12 @@ public class Registration {
             },
             ControllerTier::new);
     }
+
+    // ================================================================================================================
+    //    EASTER EGGS
+    // ================================================================================================================
+    public static final RegistryObject<SageManifestItem> SAGE_MANIFEST_ITEM = ITEMS.register("sage_manifest", SageManifestItem::new);
+
     private static RegistryObject<TierUpgradeItem> registerTierUpgrade(String name, ControllerTier tier) {
         return ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier));
     }

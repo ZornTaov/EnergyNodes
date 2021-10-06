@@ -5,6 +5,7 @@
   "item.energynodes.tier_upgrade_advanced": "Advanced Tier Upgrade",
   "item.energynodes.tier_upgrade_expert": "Expert Tier Upgrade",
   "item.energynodes.tier_upgrade_max": "Max Tier Upgrade",
+  "item.energynodes.sage_manifest": "Sage Manifest",
   "block.energynodes.energy_controller": "Energy Controller",
   "block.energynodes.input_node": "Input Node",
   "block.energynodes.output_node": "Output Node",
