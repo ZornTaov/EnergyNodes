@@ -76,8 +76,7 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
         EnergyControllerTile tile = (EnergyControllerTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null) {
             v.horizontal(center)
-                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".transferred")))
-                    .text(new StringTextComponent(tile.transferredThisTick + ""));
+                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".top.transferred"), tile.transferredThisTick));
         }
     }
 }

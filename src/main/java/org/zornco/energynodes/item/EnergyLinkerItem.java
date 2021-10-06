@@ -9,11 +9,13 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.EnergyNodeConstants;
+import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
@@ -44,7 +46,7 @@ public class EnergyLinkerItem extends Item {
             if (blockState.getBlock() instanceof EnergyNodeBlock) {
                 compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
                 // TODO - convert to using lang instead
-                Utils.SendSystemMessage(context, "Starting connection from: " + Utils.getCoordinatesAsString(blockpos));
+                Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
                 itemstack.setTag(compoundnbt);
                 return ActionResultType.SUCCESS;
 
@@ -53,15 +55,15 @@ public class EnergyLinkerItem extends Item {
                 BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
                 EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
                 if (tile1 == null) {
-                    Utils.SendSystemMessage(context, "Controller has no Tile?!");
+                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.controller_missing")));
                     return ActionResultType.PASS;
                 }
                 if (tile2 == null) {
-                    Utils.SendSystemMessage(context, "Node missing at: " + Utils.getCoordinatesAsString(otherPos));
+                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(otherPos)));
                     return ActionResultType.PASS;
                 }
                 if (blockpos.distManhattan(otherPos) >= tile1.tier.getMaxRange()) {
-                    Utils.SendSystemMessage(context, "Node out of range, limit: " + tile1.tier.getMaxRange());
+                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), tile1.tier.getMaxRange()));
                     return ActionResultType.PASS;
                 }
 
@@ -102,10 +104,10 @@ public class EnergyLinkerItem extends Item {
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
             nodeTile.energyStorage.setEnergyStored(0);
-            Utils.SendSystemMessage(context, "Disconnected to: " + Utils.getCoordinatesAsString(checkPos));
+            Utils.SendSystemMessage(context,new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(checkPos)));
         } else {
             if (controller.connectedNodes.size() >= controller.tier.getMaxConnections()) {
-                Utils.SendSystemMessage(context, "Controller has too many connections, limit: " + controller.tier.getMaxConnections());
+                Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.tier.getMaxConnections()));
                 return ActionResultType.PASS;
             }
             controller.connectedNodes.add(checkPos);
@@ -134,7 +136,7 @@ public class EnergyLinkerItem extends Item {
 
             nodeTile.controllerPos = controller.getBlockPos();
             nodeTile.energyStorage.setController(controller);
-            Utils.SendSystemMessage(context, "Connected to: " + Utils.getCoordinatesAsString(checkPos));
+            Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(checkPos)));
         }
         controller.rebuildRenderBounds();
         return ActionResultType.SUCCESS;

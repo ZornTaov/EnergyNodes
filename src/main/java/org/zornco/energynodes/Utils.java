@@ -8,6 +8,7 @@ import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
 import javax.annotation.Nonnull;
@@ -21,10 +22,14 @@ public class Utils {
     }
 
     public static void sendSystemMessage(PlayerEntity player, String text) {
-        ((ServerPlayerEntity)player).sendMessage(new StringTextComponent(text), ChatType.GAME_INFO, Util.NIL_UUID);
+        sendSystemMessage(player, new StringTextComponent(text));
     }
 
-    public static void SendSystemMessage(@Nonnull ItemUseContext context, String s) {
+    public static void sendSystemMessage(PlayerEntity player, ITextComponent text) {
+        ((ServerPlayerEntity)player).sendMessage(text, ChatType.GAME_INFO, Util.NIL_UUID);
+    }
+
+    public static void SendSystemMessage(@Nonnull ItemUseContext context, ITextComponent s) {
         if (!context.getLevel().isClientSide) {
             sendSystemMessage(context.getPlayer(), s);
         }

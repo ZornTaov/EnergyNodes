@@ -122,8 +122,7 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
         EnergyNodeTile tile = (EnergyNodeTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null && tile.controllerPos != null) {
             v.horizontal(center)
-                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
-                    .text(new StringTextComponent(Utils.getCoordinatesAsString(tile.controllerPos)));
+                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));
             /*if (blockState.get(PROP_INOUT) == Flow.OUT )
                 v.horizontal(center)
                         .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
