@@ -16,9 +16,7 @@ public class LangGenerator extends LanguageProvider {
         add("itemGroup."+EnergyNodes.MOD_ID, "Energy Nodes"); // "itemGroup.energynodes"
         add(TEST_PAD_ITEM.get() , "Test Pad"); // "item.energynodes.test_pad"
         add(ENERGY_LINKER_ITEM.get(), "Energy Linker"); // "item.energynodes.energy_linker"
-        add(TIER_UPGRADE_ADVANCED_ITEM.get(), "Advanced Tier Upgrade"); // "item.energynodes.tier_upgrade_advanced"
-        add(TIER_UPGRADE_EXPERT_ITEM.get(), "Expert Tier Upgrade"); // "item.energynodes.tier_upgrade_expert"
-        add(TIER_UPGRADE_MAX_ITEM.get(), "Max Tier Upgrade"); // "item.energynodes.tier_upgrade_max"
+        TIER_UPGRADES_MAP.forEach((name, tier) -> add(tier.get(), toProperCase(name) + " Tier Upgrade")); // "item.energynodes.tier_upgrade_advanced"
         add(SAGE_MANIFEST_ITEM.get(), "Sage Manifest"); // "item.energynodes.sage_manifest"
         add(ENERGY_CONTROLLER_BLOCK.get(), "Energy Controller"); // "block.energynodes.energy_controller"
         add(INPUT_NODE_BLOCK.get(), "Input Node"); // "block.energynodes.input_node"
@@ -37,7 +35,9 @@ public class LangGenerator extends LanguageProvider {
         addLinker("node_missing", "Node missing at: %s"); // "energynodes.linker.node_missing"
         addLinker("node_out_of_range", "Node out of range, limit: %s"); // "energynodes.linker.node_out_of_range"
     }
-
+    public static String toProperCase(final String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+    }
     /**
      * Add a Tile Entity Rendered string
      */
@@ -46,7 +46,7 @@ public class LangGenerator extends LanguageProvider {
     }
 
     /**
-     * Add a The One Probe info string
+     * Add a "The One Probe" info string
      */
     private void addTop(String key, String value) {
         add(key, "top", value);

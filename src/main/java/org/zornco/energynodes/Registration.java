@@ -47,10 +47,6 @@ public class Registration {
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, EnergyNodes.MOD_ID);
     public static final DeferredRegister<ControllerTier> TIERS = DeferredRegister.create(ControllerTier.class, EnergyNodes.MOD_ID);
     public static final RegistryObject<ControllerTier> BASE;
-    public static final RegistryObject<ControllerTier> ADVANCED;
-    public static final RegistryObject<ControllerTier> EXPERT;
-    public static final RegistryObject<ControllerTier> MAX;
-
     static {
         TIERS.makeRegistry("tiers",
                 () -> new RegistryBuilder<ControllerTier>()
@@ -72,31 +68,23 @@ public class Registration {
     public static final RegistryObject<TestPadItem> TEST_PAD_ITEM = ITEMS.register("test_pad", TestPadItem::new);
     public static final RegistryObject<EnergyLinkerItem> ENERGY_LINKER_ITEM = ITEMS.register("energy_linker", EnergyLinkerItem::new);
 
-    //public static RegistryObject<TierUpgradeItem> TIER_UPGRADE_BASE_ITEM;
-    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_ADVANCED_ITEM;
-    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_EXPERT_ITEM;
-    public static final RegistryObject<TierUpgradeItem> TIER_UPGRADE_MAX_ITEM;
+    public static final HashMap<String, RegistryObject<TierUpgradeItem>> TIER_UPGRADES_MAP = new HashMap<>();
+    public static final HashMap<String, RegistryObject<ControllerTier>> TIER_MAP = new HashMap<>();
 
     static {
         ControllerTier base = new ControllerTier("base", 0, 2000, 2, 16);
-        ControllerTier advanced = new ControllerTier("advanced", 1, 200000, 4, 32);
-        ControllerTier expert = new ControllerTier("expert", 2, 20000000, 8, 64);
-        ControllerTier max = new ControllerTier("max", 100, EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
-        BASE = TIERS.register("tier_base", () -> base);
-        ADVANCED = TIERS.register("tier_advanced", () -> advanced);
-        EXPERT = TIERS.register("tier_expert", () -> expert);
-        MAX = TIERS.register("tier_max", () -> max);
-        //TIER_UPGRADE_BASE_ITEM = registerTierUpgrade("base", base);
-        TIER_UPGRADE_ADVANCED_ITEM = registerTierUpgrade("advanced", advanced);
-        TIER_UPGRADE_EXPERT_ITEM = registerTierUpgrade("expert", expert);
-        TIER_UPGRADE_MAX_ITEM = registerTierUpgrade("max", max);
+        TIER_MAP.put("base", BASE = TIERS.register("tier_base", () -> base));
+        RegisterTier("advanced", 1, 200000, 4, 32);
+        RegisterTier("expert", 2, 20000000, 8, 64);
+        RegisterTier("max", 100, EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
     }
-    public static final ArrayList<RegistryObject<TierUpgradeItem>> TIER_UPGRADES = new ArrayList<>(Arrays.asList(
-            //TIER_UPGRADE_BASE_ITEM,
-            TIER_UPGRADE_ADVANCED_ITEM,
-            TIER_UPGRADE_EXPERT_ITEM,
-            TIER_UPGRADE_MAX_ITEM
-    ));
+
+    private static void RegisterTier(String name, int level, int maxTransfer, int maxConnections, int maxRange) {
+        ControllerTier tier = new ControllerTier(name, level, maxTransfer, maxConnections, maxRange);
+        TIER_MAP.put(name, TIERS.register("tier_" + name, () -> tier));
+        TIER_UPGRADES_MAP.put(name, ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier)));
+    }
+
 
     // ================================================================================================================
     //    BLOCKS
@@ -177,9 +165,6 @@ public class Registration {
     // ================================================================================================================
     public static final RegistryObject<SageManifestItem> SAGE_MANIFEST_ITEM = ITEMS.register("sage_manifest", SageManifestItem::new);
 
-    private static RegistryObject<TierUpgradeItem> registerTierUpgrade(String name, ControllerTier tier) {
-        return ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier));
-    }
 
     public static void init(IEventBus modEventBus) {
         TIERS.register(modEventBus);

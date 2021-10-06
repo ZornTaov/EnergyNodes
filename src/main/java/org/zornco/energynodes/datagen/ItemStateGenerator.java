@@ -27,7 +27,7 @@ public class ItemStateGenerator extends ItemModelProvider {
         singleTexture(Objects.requireNonNull(Registration.SAGE_MANIFEST_ITEM.get().getRegistryName()).getPath(),
                 new ResourceLocation("item/handheld"),
                 "layer0", new ResourceLocation(EnergyNodes.MOD_ID, "item/sages_manifest"));
-        Registration.TIER_UPGRADES.stream().map(RegistryObject::get).forEach(tier ->
+        Registration.TIER_UPGRADES_MAP.values().stream().map(RegistryObject::get).forEach(tier ->
                 singleTexture(Objects.requireNonNull(tier.getRegistryName()).getPath(),
                         new ResourceLocation("item/handheld"),
                         "layer0",
