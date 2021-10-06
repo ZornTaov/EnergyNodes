@@ -76,7 +76,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'energynodes', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'compactcrafting'
+            args '--all'
+            args '--output', file('src/main/resources/')
+            args "--existing", file("src/main/resources")
 
             mods {
                 energynodes {
