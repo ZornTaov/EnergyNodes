@@ -84,7 +84,7 @@ public class EnergyControllerTileRenderer extends TileEntityRenderer<EnergyContr
         matrixStack.scale(1/(f3 * scale), 1/(f3 * scale), f3);
         matrixStack.translate(-0.35F, -0.35F, 0.0F);
         matrixStack.scale(1/80F, 1/80F, f3);
-        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".ter.").concat(te.tier.getSerializedName())).toString(),
+        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".ter.").concat(te.tier.getSerializedName())).getString(256),
                 115), 0f, 0f, 0xffffff, false, matrixStack.last().pose(), buffer, false, 0, 140);
         matrixStack.popPose();
 
