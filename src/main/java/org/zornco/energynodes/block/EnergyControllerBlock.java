@@ -20,7 +20,7 @@ import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nullable;
 
-public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
+public class EnergyControllerBlock extends Block {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
     public EnergyControllerBlock(Properties properties) {
@@ -65,18 +65,5 @@ public class EnergyControllerBlock extends Block implements IProbeInfoAccessor {
         }
 
         return facing;
-    }
-
-    @Override
-    public void addProbeInfo(ProbeMode probeMode, IProbeInfo info, PlayerEntity playerEntity, World world, BlockState blockState, IProbeHitData iProbeHitData) {
-
-        ILayoutStyle center = info.defaultLayoutStyle()
-                .alignment(ElementAlignment.ALIGN_CENTER);
-        IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyControllerTile tile = (EnergyControllerTile) world.getBlockEntity(iProbeHitData.getPos());
-        if (tile != null) {
-            v.horizontal(center)
-                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".top.transferred"), tile.transferredThisTick));
-        }
     }
 }

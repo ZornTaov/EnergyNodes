@@ -45,7 +45,6 @@ public class EnergyLinkerItem extends Item {
         if (compoundnbt != null) {
             if (blockState.getBlock() instanceof EnergyNodeBlock) {
                 compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
-                // TODO - convert to using lang instead
                 Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
                 itemstack.setTag(compoundnbt);
                 return ActionResultType.SUCCESS;

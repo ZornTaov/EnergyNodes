@@ -24,7 +24,7 @@ import mcjty.theoneprobe.api.*;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
+public class EnergyNodeBlock extends Block {
 
     public enum Flow implements IStringSerializable {
         OUT,
@@ -112,22 +112,4 @@ public class EnergyNodeBlock extends Block implements IProbeInfoAccessor {
     public boolean hasTileEntity(BlockState state) {
         return true;
     }
-
-    @Override
-    public void addProbeInfo(ProbeMode probeMode, IProbeInfo info, PlayerEntity playerEntity, World world, BlockState blockState, IProbeHitData iProbeHitData) {
-
-        ILayoutStyle center = info.defaultLayoutStyle()
-                .alignment(ElementAlignment.ALIGN_CENTER);
-        IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyNodeTile tile = (EnergyNodeTile) world.getBlockEntity(iProbeHitData.getPos());
-        if (tile != null && tile.controllerPos != null) {
-            v.horizontal(center)
-                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));
-            /*if (blockState.get(PROP_INOUT) == Flow.OUT )
-                v.horizontal(center)
-                        .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
-                        .text(new StringTextComponent(tile.connectedTiles.size() + ""));*/
-        }
-    }
-
 }
