@@ -2,16 +2,16 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "energynodes:tier_upgrade_advanced"
+      "energynodes:tier_upgrade_expert"
     ]
   },
   "criteria": {
-    "has_ghast_tear": {
+    "has_ender_eye": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "item": "minecraft:ghast_tear"
+            "item": "minecraft:ender_eye"
           }
         ]
       }
@@ -19,13 +19,13 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "energynodes:tier_upgrade_advanced"
+        "recipe": "energynodes:tier_upgrade_expert"
       }
     }
   },
   "requirements": [
     [
-      "has_ghast_tear",
+      "has_ender_eye",
       "has_the_recipe"
     ]
   ]

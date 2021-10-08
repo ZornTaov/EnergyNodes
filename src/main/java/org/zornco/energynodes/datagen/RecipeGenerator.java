@@ -62,5 +62,36 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('B', Items.STONE_BUTTON)
                 .unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH))
                 .save(consumer);
+
+        // ================================================================================================================
+        //    TIER UPGRADES
+        // ================================================================================================================
+        ShapedRecipeBuilder.shaped(Registration.TIER_UPGRADES_MAP.get("advanced").get(), 1)
+                .pattern(" N ")
+                .pattern("NGN")
+                .pattern("BN ")
+                .define('B', Items.BLAZE_ROD)
+                .define('G', Items.GHAST_TEAR)
+                .define('N', Items.NETHER_BRICK)
+                .unlockedBy("has_ghast_tear", has(Items.GHAST_TEAR))
+                .save(consumer);
+        ShapedRecipeBuilder.shaped(Registration.TIER_UPGRADES_MAP.get("expert").get(), 1)
+                .pattern(" P ")
+                .pattern("PEP")
+                .pattern("RP ")
+                .define('R', Items.END_ROD)
+                .define('E', Items.ENDER_EYE)
+                .define('P', Items.PURPUR_BLOCK)
+                .unlockedBy("has_ender_eye", has(Items.ENDER_EYE))
+                .save(consumer);
+        ShapedRecipeBuilder.shaped(Registration.TIER_UPGRADES_MAP.get("max").get(), 1)
+                .pattern(" S ")
+                .pattern("SES")
+                .pattern("NS ")
+                .define('S', Items.NETHER_STAR)
+                .define('E', Items.DRAGON_EGG)
+                .define('N', Items.NETHERITE_INGOT)
+                .unlockedBy("has_ender_eye", has(Items.ENDER_EYE))
+                .save(consumer);
     }
 }

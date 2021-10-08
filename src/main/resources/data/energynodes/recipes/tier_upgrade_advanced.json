@@ -1,22 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " R ",
-    "SDS",
-    "BBB"
+    " N ",
+    "NGN",
+    "BN "
   ],
   "key": {
-    "R": {
-      "item": "minecraft:redstone_torch"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "S": {
-      "tag": "forge:ingots/iron"
-    },
     "B": {
-      "item": "minecraft:stone_button"
+      "item": "minecraft:blaze_rod"
+    },
+    "G": {
+      "item": "minecraft:ghast_tear"
+    },
+    "N": {
+      "item": "minecraft:nether_brick"
     }
   },
   "result": {
