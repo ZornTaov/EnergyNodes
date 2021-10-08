@@ -72,17 +72,23 @@ public class Registration {
     public static final HashMap<String, RegistryObject<ControllerTier>> TIER_MAP = new HashMap<>();
 
     static {
-        ControllerTier base = new ControllerTier("base", 0, 2000, 2, 16);
-        TIER_MAP.put("base", BASE = TIERS.register("tier_base", () -> base));
-        RegisterTier("advanced", 1, 200000, 4, 32);
-        RegisterTier("expert", 2, 20000000, 8, 64);
+        BASE = RegisterTier("base", 0, 400, 2, 16, false);
+        RegisterTier("advanced", 25, 40000, 4, 32);
+        RegisterTier("expert", 50, 4000000, 8, 64);
         RegisterTier("max", 100, EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
     }
 
     private static void RegisterTier(String name, int level, int maxTransfer, int maxConnections, int maxRange) {
+        RegisterTier(name, level, maxTransfer, maxConnections, maxRange, true);
+    }
+
+    private static RegistryObject<ControllerTier> RegisterTier(String name, int level, int maxTransfer, int maxConnections, int maxRange, boolean genItem) {
         ControllerTier tier = new ControllerTier(name, level, maxTransfer, maxConnections, maxRange);
-        TIER_MAP.put(name, TIERS.register("tier_" + name, () -> tier));
-        TIER_UPGRADES_MAP.put(name, ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier)));
+        RegistryObject<ControllerTier> tierRO = TIERS.register("tier_" + name, () -> tier);
+        TIER_MAP.put(name, tierRO);
+        if(genItem)
+            TIER_UPGRADES_MAP.put(name, ITEMS.register("tier_upgrade_" + name, () -> new TierUpgradeItem(tier)));
+        return tierRO;
     }
 
 
