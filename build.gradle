@@ -1,7 +1,6 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
         mavenCentral()
     }
     dependencies {
@@ -198,6 +197,8 @@ dependencies {
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
+    destinationDir = file("$rootDir/build-out")
+    finalizedBy('reobfJar')
     manifest {
         attributes([
             "Specification-Title": "energynodes",
