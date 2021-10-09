@@ -1,12 +1,9 @@
 package org.zornco.energynodes.network.packets;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.fml.network.NetworkEvent;
-import org.zornco.energynodes.EnergyNodes;
+import org.zornco.energynodes.client.ClientPacketHandler;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -31,19 +28,7 @@ public class PacketSyncController {
         packetBuffer.writeBlockPos(msg.pos);
     }
     public static void handle(PacketSyncController msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        NetworkEvent.Context ctx = contextSupplier.get();
-        ctx.enqueueWork(() -> {
-            World world = Minecraft.getInstance().level;
-            if (world != null) {
-                TileEntity te = world.getBlockEntity(msg.pos);
-                if (!(te instanceof EnergyControllerTile)) {
-                    EnergyNodes.LOGGER.warn("TileEntity is not a EnergyControllerTile!");
-                    return;
-                }
-                ((EnergyControllerTile) te).setTier(msg.tier);
-            }
-            ctx.setPacketHandled(true);
-        });
+        ClientPacketHandler.handleSyncController(contextSupplier, msg.pos, msg.tier);
     }
 
 }

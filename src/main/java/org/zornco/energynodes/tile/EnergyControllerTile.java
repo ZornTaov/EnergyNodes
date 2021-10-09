@@ -86,13 +86,17 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void onLoad() {
         super.onLoad();
 
-        if (level != null && !level.isClientSide) {
-            final MinecraftServer server = level.getServer();
-            if (server != null) {
-                server.tell(new TickDelayedTask(server.getTickCount(), this::loadEnergyCapsFromLevel));
+        if (level != null)
+            if (!level.isClientSide) {
+                final MinecraftServer server = level.getServer();
+                if (server != null) {
+                    server.tell(new TickDelayedTask(server.getTickCount(), this::loadEnergyCapsFromLevel));
+                }
             }
-            renderBounds = super.getRenderBoundingBox();
-        }
+            else
+            {
+                renderBounds = super.getRenderBoundingBox();
+            }
     }
 
     @Override
@@ -206,6 +210,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 return node.connectedTiles.values()
                         // TODO: Make another cap for other Lazy storage
                         .stream()
+                        .filter(Objects::nonNull)
                         .mapToInt(tile -> tile
                                 .getCapability(CapabilityEnergy.ENERGY, getFacingFromBlockPos(node.getBlockPos(), tile.getBlockPos()))
                                 .map(iEnergyStorage -> (iEnergyStorage.canReceive() ||
@@ -346,9 +351,11 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                         invalid.add(nodePos);
                         continue;
                     }
-                    renderBounds = getRenderBoundingBox().expandTowards(nodePos.getX()-this.worldPosition.getX(),
-                            nodePos.getY()-this.worldPosition.getY(),
-                            nodePos.getZ()-this.worldPosition.getZ());
+
+                    if(level.isClientSide)
+                        renderBounds = getRenderBoundingBox().expandTowards(nodePos.getX()-this.worldPosition.getX(),
+                                nodePos.getY()-this.worldPosition.getY(),
+                                nodePos.getZ()-this.worldPosition.getZ());
 
                     switch (state.getValue(EnergyNodeBlock.PROP_INOUT)) {
                         case IN:
@@ -356,7 +363,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                             cap.addListener(removed -> {
                                 this.inputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
-                                this.rebuildRenderBounds();
+                                if(level.isClientSide)
+                                    this.rebuildRenderBounds();
                             });
                             break;
 
@@ -365,7 +373,8 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                             cap.addListener(removed -> {
                                 this.outputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
-                                this.rebuildRenderBounds();
+                                if(level.isClientSide)
+                                    this.rebuildRenderBounds();
                             });
                             break;
 

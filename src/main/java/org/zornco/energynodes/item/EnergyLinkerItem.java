@@ -70,6 +70,8 @@ public class EnergyLinkerItem extends Item {
                         tile1,
                         tile2);
                 if (result == ActionResultType.SUCCESS) {
+                    if(world.isClientSide)
+                        tile1.rebuildRenderBounds();
                     compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
                     itemstack.setTag(compoundnbt);
                 }
@@ -137,7 +139,6 @@ public class EnergyLinkerItem extends Item {
             nodeTile.energyStorage.setController(controller);
             Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(checkPos)));
         }
-        controller.rebuildRenderBounds();
         return ActionResultType.SUCCESS;
     }
 
