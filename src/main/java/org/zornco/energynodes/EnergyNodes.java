@@ -20,6 +20,9 @@ public class EnergyNodes
     public EnergyNodes() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         modEventBus.addListener(this::setup);
+        //EnergyNodesConfig.setupConfigs();
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, EnergyNodesConfig.CLIENT_CONFIG);
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, EnergyNodesConfig.SERVER_CONFIG);
         Registration.init(modEventBus);
     }
 

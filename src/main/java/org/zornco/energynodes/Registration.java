@@ -23,6 +23,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryBuilder;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
+//import org.zornco.energynodes.config.EnergyNodesConfig;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.SageManifestItem;
 import org.zornco.energynodes.item.TestPadItem;
@@ -76,6 +77,17 @@ public class Registration {
         RegisterTier("advanced", 25, 40000, 4, 32);
         RegisterTier("expert", 50, 4000000, 8, 64);
         RegisterTier("max", 100, EnergyNodeConstants.UNLIMITED_RATE, 16, 128);
+        /*BASE = RegisterTier(EnergyNodesConfig.getTierNameList().get(0),
+                0,
+                EnergyNodesConfig.getMaxTransferSpeedList().get(0),
+                EnergyNodesConfig.getMaxConnectionsList().get(0),
+                EnergyNodesConfig.getMaxRadiusList().get(0), false);
+        for (int level = 1; level < EnergyNodesConfig.getTierNameList().size(); level++)
+            RegisterTier(EnergyNodesConfig.getTierNameList().get(level),
+                    level,
+                    EnergyNodesConfig.getMaxTransferSpeedList().get(level),
+                    EnergyNodesConfig.getMaxConnectionsList().get(level),
+                    EnergyNodesConfig.getMaxRadiusList().get(level));*/
     }
 
     private static void RegisterTier(String name, int level, int maxTransfer, int maxConnections, int maxRange) {
