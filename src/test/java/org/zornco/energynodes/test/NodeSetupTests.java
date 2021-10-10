@@ -28,12 +28,12 @@ public class NodeSetupTests {
     private static ItemStack linker;
 
     static {
-        inNodePos = new BlockPos(4, 0, 2);
-        outNodePos = new BlockPos(0, 0, 2);
-        controllerPos = new BlockPos(2, 0, 2);
+        inNodePos = new BlockPos(4, 0, 1);
+        outNodePos = new BlockPos(0, 0, 1);
+        controllerPos = new BlockPos(2, 0, 1);
 
-        mekCubeInPos = new BlockPos(4, 0, 3);
-        mekCubeOutPos = new BlockPos(0, 0, 3);
+        mekCubeInPos = new BlockPos(4, 0, 2);
+        mekCubeOutPos = new BlockPos(0, 0, 2);
     }
 
     @IntegrationTest("basic")
@@ -86,8 +86,27 @@ public class NodeSetupTests {
                 .ifPresent(out -> {
                     int energyStored = out.getEnergyStored();
                     testHelper.assertTrue(() -> energyStored == 50,
-                        "Expected energy to transfer not correct.");
+                        "Expected energy to transfer not correct, got: " + energyStored);
                 })
             );
+    }
+
+    @IntegrationTest("basic_2to2_c")
+    void stillLinked(IntegrationTestHelper testHelper) {
+        EnergyControllerTile controller = (EnergyControllerTile) testHelper.getTileEntity(controllerPos);
+        Assertions.assertNotNull(controller);
+        EnergyNodeTile nodeIn = (EnergyNodeTile) testHelper.getTileEntity(inNodePos);
+        Assertions.assertNotNull(nodeIn);
+        EnergyNodeTile nodeOut = (EnergyNodeTile) testHelper.getTileEntity(outNodePos);
+        Assertions.assertNotNull(nodeOut);
+
+        BlockPos inOffset = inNodePos.subtract(controllerPos);
+        BlockPos outOffset = outNodePos.subtract(controllerPos);
+        testHelper.assertTrue(() -> controller.connectedNodes.contains(inOffset) && controller.connectedNodes.contains(outOffset),"Controller not connected");
+        testHelper.assertTrue(() -> {
+            assert nodeIn.controllerPos != null;
+            BlockPos controllerOffset = nodeIn.controllerPos.offset(inNodePos);
+            return controllerOffset.asLong() == controllerPos.asLong();
+        }, "In Node not connected.");
     }
 }
