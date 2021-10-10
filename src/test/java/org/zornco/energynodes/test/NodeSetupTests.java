@@ -15,8 +15,9 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
-@IntegrationTestClass("power")
-public class PowerTests {
+@SuppressWarnings("unused")
+@IntegrationTestClass("nodesetup")
+public class NodeSetupTests {
 
 
     private static final BlockPos inNodePos;
@@ -88,6 +89,5 @@ public class PowerTests {
                         "Expected energy to transfer not correct.");
                 })
             );
-
     }
 }
