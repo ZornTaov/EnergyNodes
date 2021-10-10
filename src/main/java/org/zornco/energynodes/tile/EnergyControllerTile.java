@@ -24,6 +24,7 @@ import net.minecraftforge.fml.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
+import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
@@ -64,7 +65,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
         connectedNodes.forEach(nodePos -> {
             if(level != null) {
-                final TileEntity tile = level.getBlockEntity(nodePos);
+                final TileEntity tile = level.getBlockEntity(getNodeFromController(nodePos));
                 if (tile instanceof EnergyNodeTile) {
                     EnergyNodeTile enTile = (EnergyNodeTile) tile;
                     enTile.controllerPos = null;
@@ -146,7 +147,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .filter(Optional::isPresent)
                 .map(opt -> opt.map(storage -> {
                     if (storage instanceof NodeEnergyStorage) {
-                        BlockPos pos = ((NodeEnergyStorage) storage).getLocation();
+                        BlockPos pos = ((NodeEnergyStorage) storage).getLocation().subtract(worldPosition);
                         return BlockPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos).getOrThrow(false, EnergyNodes.LOGGER::error);
                     }
 
@@ -191,7 +192,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     public boolean canReceiveEnergy(EnergyNodeTile nodeTile) {
-        return this.connectedNodes.contains(nodeTile.getBlockPos());
+        return this.connectedNodes.contains(nodeTile.getBlockPos().subtract(worldPosition));
     }
 
     public int receiveEnergy(EnergyNodeTile inputTile, int maxReceive, boolean simulate) {
@@ -207,12 +208,13 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             connectedEnergyTilesAmount = this.outputs.stream().mapToInt(lazy -> lazy.map(storage -> {
                 // TODO: let's cheat for now
                 EnergyNodeTile node = ((NodeEnergyStorage) storage).getNodeTile();
-                return node.connectedTiles.values()
+                return node.connectedTiles.entrySet()
                         // TODO: Make another cap for other Lazy storage
                         .stream()
                         .filter(Objects::nonNull)
-                        .mapToInt(tile -> tile
-                                .getCapability(CapabilityEnergy.ENERGY, getFacingFromBlockPos(node.getBlockPos(), tile.getBlockPos()))
+                        .mapToInt(tile -> tile.getValue()
+                                .getCapability(CapabilityEnergy.ENERGY,
+                                    tile.getKey().getOpposite())
                                 .map(iEnergyStorage -> (iEnergyStorage.canReceive() ||
                                         iEnergyStorage.getEnergyStored() / iEnergyStorage.getMaxEnergyStored() != 1) ? 1 : 0)
                                 .orElse(0))
@@ -222,21 +224,23 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             connectedEnergyTilesAmount = 1;
         }
 
-        for (BlockPos outputEntry : this.connectedNodes) {
-            EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(outputEntry);
+        for (BlockPos nodePos : this.connectedNodes) {
+            EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(getNodeFromController(nodePos));
             if (outputTile != null) {
                 int transferredThisTile = 0;
-                for (Map.Entry<BlockPos, TileEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
-                    BlockPos outputOffset = tileEntry.getKey();
-                    Direction facing = getFacingFromBlockPos(outputEntry, outputOffset);
+                for (Map.Entry<Direction, TileEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
+                    Direction facing = tileEntry.getKey();
+                    //BlockPos outputOffset =outputEntry.relative(facing);
                     TileEntity otherTile = tileEntry.getValue();
                     int amountReceivedThisBlock = 0;
                     if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
                         LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing);
                         if (adjacentStorageOptional.isPresent()) {
                             IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                                    () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));
-                            int amountToSend = (int) ((this.tier.getMaxTransfer() == EnergyNodeConstants.UNLIMITED_RATE ? maxReceive / connectedEnergyTilesAmount : Math.min(maxReceive, this.tier.getMaxTransfer())) / connectedEnergyTilesAmount);
+                                () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));
+                            int amountToSend = (int) ((this.tier.getMaxTransfer() == EnergyNodeConstants.UNLIMITED_RATE ?
+                                maxReceive / connectedEnergyTilesAmount :
+                                Math.min(maxReceive, this.tier.getMaxTransfer())) / connectedEnergyTilesAmount);
                             amountReceivedThisBlock = adjacentStorage.receiveEnergy(amountToSend, simulate);
                         }
                     }
@@ -260,14 +264,6 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         }
 
         return amountReceived;
-    }
-
-    @Nonnull
-    private Direction getFacingFromBlockPos(BlockPos pos, BlockPos neighbor) {
-        return Direction.getNearest(
-                (float) (pos.getX() - neighbor.getX()),
-                (float) (pos.getY() - neighbor.getY()),
-                (float) (pos.getZ() - neighbor.getZ()));
     }
 
     @Override
@@ -339,9 +335,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
     private void loadEnergyCapsFromLevel() {
         Set<BlockPos> invalid = new HashSet<>();
-        for (BlockPos nodePos : connectedNodes) {
+        for (BlockPos nodePos1 : connectedNodes) {
             // load and parse capability references
             // TODO - what happens if that chunk is not loaded? then inputs and outputs don't get filled!
+            BlockPos nodePos = getNodeFromController(nodePos1);
             if (level != null && level.isLoaded(nodePos)) {
                 final BlockState state = level.getBlockState(nodePos);
                 final TileEntity tn = level.getBlockEntity(nodePos);
@@ -391,7 +388,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void rebuildRenderBounds() {
         this.renderBounds = super.getRenderBoundingBox();
         for (BlockPos nodePos : connectedNodes) {
-            AxisAlignedBB aabbNodePos = AxisAlignedBB.ofSize(1, 1, 1).move(Vector3d.atCenterOf(nodePos));
+            AxisAlignedBB aabbNodePos = AxisAlignedBB.ofSize(1, 1, 1).move(Vector3d.atCenterOf(getNodeFromController(nodePos)));
             renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
         }
     }
@@ -404,5 +401,9 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void setTier(IControllerTier tier) {
         this.tier = tier;
         this.tierLO = LazyOptional.of(() -> tier);
+    }
+    private BlockPos getNodeFromController(BlockPos nodePos)
+    {
+        return worldPosition.offset(nodePos);
     }
 }

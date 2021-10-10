@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemUseContext;
+import net.minecraft.util.Direction;
+import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
@@ -16,6 +18,8 @@ import java.util.List;
 
 public class Utils {
     public static final Codec<List<BlockPos>> BLOCK_POS_LIST_CODEC = Codec.list(BlockPos.CODEC );
+    public static final Codec<Direction> DIRECTION_CODEC = IStringSerializable.fromEnum(Direction::values, Direction::byName);
+    public static final Codec<List<Direction>> DIRECTION_LIST_CODEC = Codec.list(DIRECTION_CODEC);
 
     public static void sendMessage(PlayerEntity player, String text) {
         ((ServerPlayerEntity)player).sendMessage(new StringTextComponent(text), ChatType.CHAT, Util.NIL_UUID);
@@ -37,5 +41,13 @@ public class Utils {
 
     public static String getCoordinatesAsString(Vector3i vec) {
         return "" + vec.getX() + ", " + vec.getY() + ", " + vec.getZ();
+    }
+
+    @Nonnull
+    public static Direction getFacingFromBlockPos(@Nonnull BlockPos pos, @Nonnull BlockPos neighbor) {
+        return Direction.getNearest(
+                (float) (pos.getX() - neighbor.getX()),
+                (float) (pos.getY() - neighbor.getY()),
+                (float) (pos.getZ() - neighbor.getZ()));
     }
 }

@@ -31,7 +31,7 @@ import java.util.Objects;
 public class EnergyNodeTile extends TileEntity {
     public final NodeEnergyStorage energyStorage;
     private final LazyOptional<NodeEnergyStorage> energy;
-    public final HashMap<BlockPos,TileEntity> connectedTiles = new HashMap<>();
+    public final HashMap<Direction,TileEntity> connectedTiles = new HashMap<>();
 
     @Nullable
     public BlockPos controllerPos;
@@ -61,7 +61,7 @@ public class EnergyNodeTile extends TileEntity {
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(blockPosINBTPair -> this.controllerPos = blockPosINBTPair.getFirst());
         if (tag.get(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY) != null)
-            Utils.BLOCK_POS_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
+            Utils.DIRECTION_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(blockPos -> connectedTiles.put(blockPos,
                             null)));
@@ -76,7 +76,7 @@ public class EnergyNodeTile extends TileEntity {
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY, inbt));
         if (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
-            Utils.BLOCK_POS_LIST_CODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
+            Utils.DIRECTION_LIST_CODEC.encodeStart(NBTDynamicOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
                     .ifPresent(inbt -> tag.put(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, inbt));
         return tag;
@@ -123,12 +123,12 @@ public class EnergyNodeTile extends TileEntity {
     private void LoadConnectedTiles() {
         if (level != null) {
 
-            if (controllerPos != null && level.isLoaded(controllerPos)) {
-                this.energyStorage.setController((EnergyControllerTile) level.getBlockEntity(controllerPos));
+            if (controllerPos != null && level.isLoaded(controllerPos.offset(worldPosition))) {
+                this.energyStorage.setController((EnergyControllerTile) level.getBlockEntity(controllerPos.offset(worldPosition)));
             }
-            for (BlockPos ctPos : connectedTiles.keySet()) {
-                if (level.isLoaded(ctPos)) {
-                    connectedTiles.replace(ctPos, level.getBlockEntity(ctPos));
+            for (Direction ctPos : connectedTiles.keySet()) {
+                if (level.isLoaded(worldPosition.relative(ctPos))) {
+                    connectedTiles.replace(ctPos, level.getBlockEntity(worldPosition.relative(ctPos)));
                 } else {
                     connectedTiles.remove(ctPos);
                 }

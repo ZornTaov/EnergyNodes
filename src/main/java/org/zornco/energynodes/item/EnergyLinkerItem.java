@@ -50,28 +50,28 @@ public class EnergyLinkerItem extends Item {
                 return ActionResultType.SUCCESS;
 
             } else if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
-                EnergyControllerTile tile1 = (EnergyControllerTile) world.getBlockEntity(blockpos);
-                BlockPos otherPos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
-                EnergyNodeTile tile2 = (EnergyNodeTile) world.getBlockEntity(otherPos);
-                if (tile1 == null) {
+                EnergyControllerTile controllerTile = (EnergyControllerTile) world.getBlockEntity(blockpos);
+                BlockPos nodePos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+                EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(nodePos);
+                if (controllerTile == null) {
                     Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.controller_missing")));
                     return ActionResultType.PASS;
                 }
-                if (tile2 == null) {
-                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(otherPos)));
+                if (nodeTile == null) {
+                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
                     return ActionResultType.PASS;
                 }
-                if (blockpos.distManhattan(otherPos) >= tile1.tier.getMaxRange()) {
-                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), tile1.tier.getMaxRange()));
+                if (blockpos.distManhattan(nodePos) >= controllerTile.tier.getMaxRange()) {
+                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.tier.getMaxRange()));
                     return ActionResultType.PASS;
                 }
 
                 ActionResultType result = updateControllerPosList(context,
-                        tile1,
-                        tile2);
+                        controllerTile,
+                        nodeTile);
                 if (result == ActionResultType.SUCCESS) {
                     if(world.isClientSide)
-                        tile1.rebuildRenderBounds();
+                        controllerTile.rebuildRenderBounds();
                     compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
                     itemstack.setTag(compoundnbt);
                 }
@@ -90,9 +90,9 @@ public class EnergyLinkerItem extends Item {
         Direction hit = context.getClickedFace();
         LazyOptional<IEnergyStorage> storage = nodeTile.getCapability(CapabilityEnergy.ENERGY, hit);
 
-        BlockPos checkPos = nodeTile.getBlockPos();
-        if (controller.connectedNodes.contains(checkPos)) {
-            controller.connectedNodes.remove(checkPos);
+        BlockPos nodeFromController = nodeTile.getBlockPos().subtract(controller.getBlockPos());
+        if (controller.connectedNodes.contains(nodeFromController)) {
+            controller.connectedNodes.remove(nodeFromController);
             switch (dir) {
                 case IN:
                     controller.inputs.remove(storage);
@@ -105,13 +105,13 @@ public class EnergyLinkerItem extends Item {
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
             nodeTile.energyStorage.setEnergyStored(0);
-            Utils.SendSystemMessage(context,new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(checkPos)));
+            Utils.SendSystemMessage(context,new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(nodeFromController)));
         } else {
             if (controller.connectedNodes.size() >= controller.tier.getMaxConnections()) {
                 Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.tier.getMaxConnections()));
                 return ActionResultType.PASS;
             }
-            controller.connectedNodes.add(checkPos);
+            controller.connectedNodes.add(nodeFromController);
             switch (dir) {
                 case IN:
                     controller.inputs.add(storage);
@@ -122,7 +122,7 @@ public class EnergyLinkerItem extends Item {
             }
 
             storage.addListener(removed -> {
-                controller.connectedNodes.remove(checkPos);
+                controller.connectedNodes.remove(nodeFromController);
                 switch (dir) {
                     case IN:
                         controller.inputs.remove(removed);
@@ -135,9 +135,9 @@ public class EnergyLinkerItem extends Item {
                 controller.setChanged();
             });
 
-            nodeTile.controllerPos = controller.getBlockPos();
+            nodeTile.controllerPos = controller.getBlockPos().subtract(nodeTile.getBlockPos());
             nodeTile.energyStorage.setController(controller);
-            Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(checkPos)));
+            Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(nodeFromController)));
         }
         return ActionResultType.SUCCESS;
     }

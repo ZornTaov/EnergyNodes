@@ -49,22 +49,7 @@ public class EnergyNodeBlock extends Block {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide()) {
             for (Direction facing : Direction.values()) {
                 BlockPos neighbor = pos.relative(facing);
-                EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
-                TileEntity otherTile = world.getBlockEntity(neighbor);
-                if (otherTile != null) {
-                    LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
-                    if (adjacentStorageOptional.isPresent()) {
-                        /*IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                                () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));*/
-                        if (nodeTile != null) {
-                            nodeTile.connectedTiles.put(neighbor, otherTile);
-                        }
-                    }
-                }
-                else
-                if (nodeTile != null) {
-                    nodeTile.connectedTiles.remove(neighbor);
-                }
+                connectToEnergyStorage(world, pos, facing, neighbor);
             }
         }
     }
@@ -73,27 +58,27 @@ public class EnergyNodeBlock extends Block {
     public void neighborChanged(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
         {
-            EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
-            TileEntity otherTile = world.getBlockEntity(neighbor);
-            if (otherTile != null) {
-                Direction facing =  Direction.getNearest(
-                        (float) (pos.getX() - neighbor.getX()),
-                        (float) (pos.getY() - neighbor.getY()),
-                        (float) (pos.getZ() - neighbor.getZ()));
+            Direction facing = Utils.getFacingFromBlockPos(pos, neighbor);
+            connectToEnergyStorage(world, pos, facing, neighbor);
+        }
+    }
 
-                LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
-                if (adjacentStorageOptional.isPresent()) {
-                    /*IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                            () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));*/
-                    if (nodeTile != null) {
-                        nodeTile.connectedTiles.put(neighbor, otherTile);
-                    }
+    private void connectToEnergyStorage(@Nonnull World world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
+        EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
+        TileEntity otherTile = world.getBlockEntity(neighbor);
+        if (otherTile != null) {
+            LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
+            if (adjacentStorageOptional.isPresent()) {
+                /*IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
+                        () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));*/
+                if (nodeTile != null) {
+                    nodeTile.connectedTiles.put(facing, otherTile);
                 }
             }
-            else
-            if (nodeTile != null) {
-                nodeTile.connectedTiles.remove(neighbor);
-            }
+        }
+        else
+        if (nodeTile != null) {
+            nodeTile.connectedTiles.remove(facing);
         }
     }
 
