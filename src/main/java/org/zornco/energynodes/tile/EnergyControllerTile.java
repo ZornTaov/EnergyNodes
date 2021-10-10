@@ -24,7 +24,6 @@ import net.minecraftforge.fml.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
-import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
@@ -211,7 +210,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 return node.connectedTiles.entrySet()
                         // TODO: Make another cap for other Lazy storage
                         .stream()
-                        .filter(Objects::nonNull)
+                        .filter(entry -> entry.getValue() != null)
                         .mapToInt(tile -> tile.getValue()
                                 .getCapability(CapabilityEnergy.ENERGY,
                                     tile.getKey().getOpposite())

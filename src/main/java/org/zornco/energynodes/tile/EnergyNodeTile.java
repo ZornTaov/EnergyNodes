@@ -63,7 +63,7 @@ public class EnergyNodeTile extends TileEntity {
         if (tag.get(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY) != null)
             Utils.DIRECTION_LIST_CODEC.decode(NBTDynamicOps.INSTANCE, tag.getList(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, Constants.NBT.TAG_INT_ARRAY))
                     .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(blockPos -> connectedTiles.put(blockPos,
+                    .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(direction -> connectedTiles.put(direction,
                             null)));
     }
 
@@ -126,11 +126,12 @@ public class EnergyNodeTile extends TileEntity {
             if (controllerPos != null && level.isLoaded(controllerPos.offset(worldPosition))) {
                 this.energyStorage.setController((EnergyControllerTile) level.getBlockEntity(controllerPos.offset(worldPosition)));
             }
-            for (Direction ctPos : connectedTiles.keySet()) {
-                if (level.isLoaded(worldPosition.relative(ctPos))) {
-                    connectedTiles.replace(ctPos, level.getBlockEntity(worldPosition.relative(ctPos)));
+            for (Direction ctDir : connectedTiles.keySet()) {
+                if (level.isLoaded(worldPosition.relative(ctDir))) {
+                    TileEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir.getOpposite()));
+                    connectedTiles.replace(ctDir, blockEntity);
                 } else {
-                    connectedTiles.remove(ctPos);
+                    connectedTiles.remove(ctDir);
                 }
             }
         }
