@@ -128,7 +128,7 @@ public class EnergyNodeTile extends TileEntity {
             }
             for (Direction ctDir : connectedTiles.keySet()) {
                 if (level.isLoaded(worldPosition.relative(ctDir))) {
-                    TileEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir.getOpposite()));
+                    TileEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
                     connectedTiles.replace(ctDir, blockEntity);
                 } else {
                     connectedTiles.remove(ctDir);
