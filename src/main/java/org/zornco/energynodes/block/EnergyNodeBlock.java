@@ -67,7 +67,7 @@ public class EnergyNodeBlock extends Block {
         EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
         if (nodeTile != null) {
         TileEntity otherTile = world.getBlockEntity(neighbor);
-        if (otherTile != null) {
+        if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
             LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
             if (adjacentStorageOptional.isPresent()) {
                 IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
