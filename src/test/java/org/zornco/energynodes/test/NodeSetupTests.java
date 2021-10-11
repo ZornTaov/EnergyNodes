@@ -5,10 +5,8 @@ import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.energy.CapabilityEnergy;
 import org.junit.jupiter.api.Assertions;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.Registration;
@@ -19,34 +17,17 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 @IntegrationTestClass("nodesetup")
 public class NodeSetupTests {
 
-
-    private static final BlockPos inNodePos;
-    private static final BlockPos outNodePos;
-    private static final BlockPos controllerPos;
-    private static final BlockPos mekCubeInPos;
-    private static final BlockPos mekCubeOutPos;
-    private static ItemStack linker;
-
-    static {
-        inNodePos = new BlockPos(4, 0, 1);
-        outNodePos = new BlockPos(0, 0, 1);
-        controllerPos = new BlockPos(2, 0, 1);
-
-        mekCubeInPos = new BlockPos(4, 0, 2);
-        mekCubeOutPos = new BlockPos(0, 0, 2);
-    }
-
     @IntegrationTest("basic")
     void nodesHaveCorrectTiles(IntegrationTestHelper testHelper) {
-        testHelper.assertTileEntityAt(inNodePos, EnergyNodeTile.class, "Input Node Tile missing.");
-        testHelper.assertTileEntityAt(outNodePos, EnergyNodeTile.class, "Output Node Tile missing.");
-        testHelper.assertTileEntityAt(controllerPos, EnergyControllerTile.class, "Controller Tile missing.");
+        testHelper.assertTileEntityAt(Vars.inNodePos, EnergyNodeTile.class, "Input Node Tile missing.");
+        testHelper.assertTileEntityAt(Vars.outNodePos, EnergyNodeTile.class, "Output Node Tile missing.");
+        testHelper.assertTileEntityAt(Vars.controllerPos, EnergyControllerTile.class, "Controller Tile missing.");
     }
 
     @IntegrationTest("basic")
     void usingLinkerOnNodeCopiesPosition(IntegrationTestHelper testHelper) {
-        linker = new ItemStack(Registration.ENERGY_LINKER_ITEM.get());
-        testHelper.useItem(inNodePos, Direction.UP, linker);
+        ItemStack linker = new ItemStack(Registration.ENERGY_LINKER_ITEM.get());
+        testHelper.useItem(Vars.inNodePos, Direction.UP, linker);
         testHelper.assertTrue(linker::hasTag, "Expected NBT on Linker.");
         CompoundNBT linkerTag = linker.getTag();
         Assertions.assertNotNull(linkerTag);
@@ -55,58 +36,26 @@ public class NodeSetupTests {
 
     @IntegrationTest("basic")
     void canLinkNodes(IntegrationTestHelper testHelper) {
-        linkNodes(testHelper);
-    }
-
-    private void linkNodes(IntegrationTestHelper testHelper) {
-        linker = new ItemStack(Registration.ENERGY_LINKER_ITEM.get());
-        // link in to controller
-        testHelper.useItem(inNodePos, Direction.UP, linker);
-        testHelper.useItem(controllerPos, Direction.UP, linker);
-
-        // link out to controller
-        testHelper.useItem(outNodePos, Direction.UP, linker);
-        testHelper.useItem(controllerPos, Direction.UP, linker);
-    }
-
-    @IntegrationTest("basic")
-    void transferEnergy(IntegrationTestHelper testHelper) {
-        linkNodes(testHelper);
-        TileEntity mekIn = testHelper.getTileEntity(mekCubeInPos);
-        Assertions.assertNotNull(mekIn);
-        TileEntity mekOut = testHelper.getTileEntity(mekCubeOutPos);
-        Assertions.assertNotNull(mekOut);
-
-        testHelper.runAfter(0, () -> mekIn
-                .getCapability(CapabilityEnergy.ENERGY, Direction.UP)
-                .ifPresent(in -> in
-                    .receiveEnergy(50, false)))
-            .thenRun(5, () -> mekOut
-                .getCapability(CapabilityEnergy.ENERGY, Direction.EAST)
-                .ifPresent(out -> {
-                    int energyStored = out.getEnergyStored();
-                    testHelper.assertTrue(() -> energyStored == 50,
-                        "Expected energy to transfer not correct, got: " + energyStored);
-                })
-            );
+        Vars.linkNodes(testHelper, Vars.inNodePos);
+        Vars.linkNodes(testHelper, Vars.outNodePos);
     }
 
     @IntegrationTest("basic_2to2_c")
     void stillLinked(IntegrationTestHelper testHelper) {
-        EnergyControllerTile controller = (EnergyControllerTile) testHelper.getTileEntity(controllerPos);
+        EnergyControllerTile controller = (EnergyControllerTile) testHelper.getTileEntity(Vars.controllerPos);
         Assertions.assertNotNull(controller);
-        EnergyNodeTile nodeIn = (EnergyNodeTile) testHelper.getTileEntity(inNodePos);
+        EnergyNodeTile nodeIn = (EnergyNodeTile) testHelper.getTileEntity(Vars.inNodePos);
         Assertions.assertNotNull(nodeIn);
-        EnergyNodeTile nodeOut = (EnergyNodeTile) testHelper.getTileEntity(outNodePos);
+        EnergyNodeTile nodeOut = (EnergyNodeTile) testHelper.getTileEntity(Vars.outNodePos);
         Assertions.assertNotNull(nodeOut);
 
-        BlockPos inOffset = inNodePos.subtract(controllerPos);
-        BlockPos outOffset = outNodePos.subtract(controllerPos);
+        BlockPos inOffset = Vars.inNodePos.subtract(Vars.controllerPos);
+        BlockPos outOffset = Vars.outNodePos.subtract(Vars.controllerPos);
         testHelper.assertTrue(() -> controller.connectedNodes.contains(inOffset) && controller.connectedNodes.contains(outOffset),"Controller not connected");
         testHelper.assertTrue(() -> {
             assert nodeIn.controllerPos != null;
-            BlockPos controllerOffset = nodeIn.controllerPos.offset(inNodePos);
-            return controllerOffset.asLong() == controllerPos.asLong();
+            BlockPos controllerOffset = nodeIn.controllerPos.offset(Vars.inNodePos);
+            return controllerOffset.asLong() == Vars.controllerPos.asLong();
         }, "In Node not connected.");
     }
 }
