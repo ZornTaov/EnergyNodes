@@ -26,3 +26,4 @@ generated/
 # Files from Forge MDK
 forge*changelog.txt
 /src/main/resources/.cache/cache
+build-out/*
