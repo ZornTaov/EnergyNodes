@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static org.zornco.energynodes.block.EnergyNodeBlock.Flow.*;
+
 public class EnergyNodeTile extends TileEntity {
     public final NodeEnergyStorage energyStorage;
     private final LazyOptional<NodeEnergyStorage> energy;
@@ -133,6 +135,22 @@ public class EnergyNodeTile extends TileEntity {
                 } else {
                     connectedTiles.remove(ctDir);
                 }
+            }
+            if (energyStorage.getControllerTile() != null) {
+                energy.addListener(removed -> {
+                    energyStorage.getControllerTile().connectedNodes.remove(this.getBlockPos().subtract(controllerPos));
+
+                    switch (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT)) {
+                        case IN:
+                            energyStorage.getControllerTile().inputs.remove(removed);
+                            break;
+                        case OUT:
+                            energyStorage.getControllerTile().outputs.remove(removed);
+                            break;
+                    }
+
+                    energyStorage.getControllerTile().setChanged();
+                });
             }
         }
     }

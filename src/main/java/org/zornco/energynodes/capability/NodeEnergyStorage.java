@@ -16,6 +16,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
     private int energy;
     @Nonnull
     private final EnergyNodeTile nodeTile;
+
     @Nullable
     private EnergyControllerTile controllerTile;
     public NodeEnergyStorage(@Nonnull EnergyNodeTile tile) {
@@ -80,6 +81,11 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     public void setController(EnergyControllerTile controllerTile) {
         this.controllerTile = controllerTile;
+    }
+
+    @Nullable
+    public EnergyControllerTile getControllerTile() {
+        return controllerTile;
     }
 
     public void setEnergyStored(int amountReceivedThisBlock) {
