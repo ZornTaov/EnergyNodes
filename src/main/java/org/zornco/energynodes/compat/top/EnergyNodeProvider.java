@@ -1,4 +1,4 @@
-package org.zornco.energynodes.compat.jei;
+package org.zornco.energynodes.compat.top;
 
 import mcjty.theoneprobe.api.*;
 import net.minecraft.block.BlockState;

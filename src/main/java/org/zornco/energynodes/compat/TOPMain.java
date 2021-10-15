@@ -1,8 +1,8 @@
 package org.zornco.energynodes.compat;
 
 import mcjty.theoneprobe.api.ITheOneProbe;
-import org.zornco.energynodes.compat.jei.EnergyControllerProvider;
-import org.zornco.energynodes.compat.jei.EnergyNodeProvider;
+import org.zornco.energynodes.compat.top.EnergyControllerProvider;
+import org.zornco.energynodes.compat.top.EnergyNodeProvider;
 
 import java.util.function.Function;
 
