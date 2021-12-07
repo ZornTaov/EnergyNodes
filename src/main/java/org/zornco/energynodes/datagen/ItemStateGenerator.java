@@ -1,10 +1,10 @@
 package org.zornco.energynodes.datagen;
 
 import net.minecraft.data.DataGenerator;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 

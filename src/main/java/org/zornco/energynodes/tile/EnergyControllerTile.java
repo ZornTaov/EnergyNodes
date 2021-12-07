@@ -1,18 +1,19 @@
 package org.zornco.energynodes.tile;
 
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SUpdateTileEntityPacket;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.ITickableTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.concurrent.TickDelayedTask;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.server.TickTask;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.model.ModelDataManager;
@@ -20,7 +21,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
@@ -36,7 +37,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class EnergyControllerTile extends TileEntity implements ITickableTileEntity {
+public class EnergyControllerTile extends BlockEntity {
 
     protected int ticks = 0;
     protected long totalEnergyTransferred = 0;
@@ -47,13 +48,13 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public final HashSet<LazyOptional<IEnergyStorage>> outputs = new HashSet<>();
 
     public long transferredThisTick;
-    private AxisAlignedBB renderBounds;
+    private AABB renderBounds;
 
     public IControllerTier tier;
     private LazyOptional<IControllerTier> tierLO;
 
-    public EnergyControllerTile() {
-        super(Registration.ENERGY_CONTROLLER_TILE.get());
+    public EnergyControllerTile(@Nonnull BlockPos pos, @Nonnull BlockState state) {
+        super(Registration.ENERGY_CONTROLLER_TILE.get(), pos, state);
         this.tier = new ControllerTier();
         tierLO = LazyOptional.of(() -> this.tier);
     }
@@ -64,7 +65,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
 
         connectedNodes.forEach(nodePos -> {
             if(level != null) {
-                final TileEntity tile = level.getBlockEntity(getNodeFromController(nodePos));
+                final BlockEntity tile = level.getBlockEntity(getNodeFromController(nodePos));
                 if (tile instanceof EnergyNodeTile) {
                     EnergyNodeTile enTile = (EnergyNodeTile) tile;
                     enTile.controllerPos = null;
@@ -77,7 +78,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    protected void invalidateCaps() {
+    public void invalidateCaps() {
         super.invalidateCaps();
         tierLO.invalidate();
     }
@@ -90,7 +91,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             if (!level.isClientSide) {
                 final MinecraftServer server = level.getServer();
                 if (server != null) {
-                    server.tell(new TickDelayedTask(server.getTickCount(), this::loadEnergyCapsFromLevel));
+                    server.tell(new TickTask(server.getTickCount(), this::loadEnergyCapsFromLevel));
                 }
             }
             else
@@ -100,17 +101,17 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     }
 
     @Override
-    public void load(@Nonnull BlockState state, @Nonnull CompoundNBT tag) {
-        super.load(state, tag);
+    public void load(@Nonnull CompoundTag tag) {
+        super.load(tag);
         // inputPositions
         BlockPos.CODEC.listOf().fieldOf(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY).codec()
-                .parse(NBTDynamicOps.INSTANCE, tag)
+                .parse(NbtOps.INSTANCE, tag)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(connectedNodes::addAll);
 
         // outputs
         BlockPos.CODEC.listOf().fieldOf(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY).codec()
-                .parse(NBTDynamicOps.INSTANCE, tag)
+                .parse(NbtOps.INSTANCE, tag)
                 .resultOrPartial(EnergyNodes.LOGGER::error)
                 .ifPresent(connectedNodes::addAll);
 
@@ -125,29 +126,26 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
     }
 
-    @Nonnull
     @Override
-    public CompoundNBT save(@Nonnull CompoundNBT compound) {
-        CompoundNBT tag = super.save(compound);
+    public void saveAdditional(@Nonnull CompoundTag compound) {
         checkConnections();
-        tag.put(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
-        tag.put(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
+        compound.put(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
+        compound.put(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
 
-        tag.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
-        tag.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
-        tag.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
-        return tag;
+        compound.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
+        compound.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
+        compound.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
     }
 
     @Nonnull
-    private ListNBT getStorageNbt(Collection<LazyOptional<IEnergyStorage>> storages) {
+    private ListTag getStorageNbt(Collection<LazyOptional<IEnergyStorage>> storages) {
         return storages.stream()
                 .map(LazyOptional::resolve)
                 .filter(Optional::isPresent)
                 .map(opt -> opt.map(storage -> {
                     if (storage instanceof NodeEnergyStorage) {
                         BlockPos pos = ((NodeEnergyStorage) storage).getLocation().subtract(worldPosition);
-                        return BlockPos.CODEC.encodeStart(NBTDynamicOps.INSTANCE, pos).getOrThrow(false, EnergyNodes.LOGGER::error);
+                        return BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).getOrThrow(false, EnergyNodes.LOGGER::error);
                     }
 
                     return null;
@@ -156,26 +154,26 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
                 .collect(NbtListCollector.toNbtList());
     }
 
-    @Nonnull
-    @Override
-    public CompoundNBT getUpdateTag() {
-        return save(new CompoundNBT());
-    }
+//    @Nonnull
+//    @Override
+//    public CompoundTag getUpdateTag() {
+//        return save(new CompoundTag());
+//    }
+//
+//    @Override
+//    public void handleUpdateTag(CompoundTag tag) {
+//        load(tag);
+//    }
+//
+//    @Override
+//    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+//        return new ClientboundBlockEntityDataPacket(this.worldPosition, -1, this.getUpdateTag());
+//    }
 
     @Override
-    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
-        load(state, tag);
-    }
-
-    @Override
-    public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(this.worldPosition, -1, this.getUpdateTag());
-    }
-
-    @Override
-    public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
         if (this.getLevel() != null) {
-            this.handleUpdateTag(this.getLevel().getBlockState(worldPosition), packet.getTag());
+            this.handleUpdateTag(packet.getTag());
             ModelDataManager.requestModelDataRefresh(this);
             this.getLevel().setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
         }
@@ -227,10 +225,10 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             EnergyNodeTile outputTile = (EnergyNodeTile) level.getBlockEntity(getNodeFromController(nodePos));
             if (outputTile != null) {
                 int transferredThisTile = 0;
-                for (Map.Entry<Direction, TileEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
+                for (Map.Entry<Direction, BlockEntity> tileEntry : outputTile.connectedTiles.entrySet()) {
                     Direction facing = tileEntry.getKey();
                     //BlockPos outputOffset =outputEntry.relative(facing);
-                    TileEntity otherTile = tileEntry.getValue();
+                    BlockEntity otherTile = tileEntry.getValue();
                     int amountReceivedThisBlock = 0;
                     if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
                         LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing);
@@ -265,42 +263,39 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
         return amountReceived;
     }
 
-    @Override
-    public void tick() {
-        if (this.level == null) {
-            return;
-        }
-        if (!this.level.isClientSide) {
+    static public void tick(@Nonnull Level level, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nonnull BlockEntity tile) {
+        EnergyControllerTile ECTile = (EnergyControllerTile) tile;
+        if (!level.isClientSide) {
             // Compute the FE transfer in this tick by taking the difference between total transfer this
             // tick and the total transfer last tick
-            transferredThisTick = Math.abs(this.totalEnergyTransferred);
+            ECTile.transferredThisTick = Math.abs(ECTile.totalEnergyTransferred);
 
-            inputs.forEach(opt -> opt.ifPresent(storage -> {
+            ECTile.inputs.forEach(opt -> opt.ifPresent(storage -> {
                 final NodeEnergyStorage s = (NodeEnergyStorage) storage;
                 s.setEnergyStored(0);
             }));
 
-            outputs.forEach(opt -> opt.ifPresent(storage -> {
+            ECTile.outputs.forEach(opt -> opt.ifPresent(storage -> {
                 final NodeEnergyStorage s = (NodeEnergyStorage) storage;
                 s.setEnergyStored(0);
             }));
 
-            this.totalEnergyTransferred = 0;
-            if (transferredThisTick > 0) {
-                this.setChanged();
+            ECTile.totalEnergyTransferred = 0;
+            if (ECTile.transferredThisTick > 0) {
+                ECTile.setChanged();
             }
 
-            if (this.ticks % 10 == 0) {
-                this.setChanged();
+            if (ECTile.ticks % 10 == 0) {
+                ECTile.setChanged();
             }
         } else {
-            if (this.ticks % 10 == 0) {
+            if (ECTile.ticks % 10 == 0) {
 
-                this.checkConnections();
-                spawnParticles();
+                ECTile.checkConnections();
+                ECTile.spawnParticles();
             }
         }
-        this.ticks = ++this.ticks % 20;
+        ECTile.ticks = ++ECTile.ticks % 20;
     }
 
     private void checkConnections() {
@@ -316,16 +311,16 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             // TODO - Maybe convert particles into TER code only?
             inputs.forEach(input -> input.ifPresent(inputNode -> {
                 BlockPos inputPos = ((NodeEnergyStorage)inputNode).getLocation();
-                Vector3d spawn = Vector3d.atCenterOf(inputPos);
-                Vector3d dest = Vector3d.atCenterOf(worldPosition);
+                Vec3 spawn = Vec3.atCenterOf(inputPos);
+                Vec3 dest = Vec3.atCenterOf(worldPosition);
                 EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
                 level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
 
             outputs.forEach(output -> output.ifPresent(outputNode -> {
                 BlockPos outputPos = ((NodeEnergyStorage) outputNode).getLocation();
-                Vector3d spawn = Vector3d.atCenterOf(worldPosition);
-                Vector3d dest = Vector3d.atCenterOf(outputPos);
+                Vec3 spawn = Vec3.atCenterOf(worldPosition);
+                Vec3 dest = Vec3.atCenterOf(outputPos);
                 EnergyNodeParticleData data = new EnergyNodeParticleData(1f, .5f, .1f);
                 level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
             }));
@@ -340,7 +335,7 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
             BlockPos nodePos = getNodeFromController(nodePos1);
             if (level != null && level.isLoaded(nodePos)) {
                 final BlockState state = level.getBlockState(nodePos);
-                final TileEntity tn = level.getBlockEntity(nodePos);
+                final BlockEntity tn = level.getBlockEntity(nodePos);
                 if (tn instanceof EnergyNodeTile) {
                     final LazyOptional<IEnergyStorage> cap = tn.getCapability(CapabilityEnergy.ENERGY, null);
                     if (!cap.isPresent()) {
@@ -387,13 +382,13 @@ public class EnergyControllerTile extends TileEntity implements ITickableTileEnt
     public void rebuildRenderBounds() {
         this.renderBounds = super.getRenderBoundingBox();
         for (BlockPos nodePos : connectedNodes) {
-            AxisAlignedBB aabbNodePos = AxisAlignedBB.ofSize(1, 1, 1).move(Vector3d.atCenterOf(getNodeFromController(nodePos)));
+            AABB aabbNodePos = AABB.ofSize(Vec3.atCenterOf(getNodeFromController(nodePos)), 1, 1, 1);
             renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
         }
     }
 
     @Override
-    public AxisAlignedBB getRenderBoundingBox() {
+    public AABB getRenderBoundingBox() {
         return renderBounds != null ? renderBounds : super.getRenderBoundingBox();
     }
 

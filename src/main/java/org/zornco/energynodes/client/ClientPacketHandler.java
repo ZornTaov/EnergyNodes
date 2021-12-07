@@ -1,10 +1,10 @@
 package org.zornco.energynodes.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -15,11 +15,18 @@ public class ClientPacketHandler {
     public static void handleTransferred(Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, long transferredThisTick) {
         NetworkEvent.Context ctx = contextSupplier.get();
         ctx.enqueueWork(() -> {
-            World world = Minecraft.getInstance().level;
+            Level world = Minecraft.getInstance().level;
             if (world != null) {
-                TileEntity te = world.getBlockEntity(pos);
+                BlockEntity te = world.getBlockEntity(pos);
+                if (te == null) {
+                    //EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is null!");
+                    //ctx.setPacketHandled(false);
+                    //throw new NullPointerException("ClientPacketHandler#handleTransferred: TileEntity is null!");
+                    return;
+                }
                 if (!(te instanceof EnergyControllerTile)) {
-                    EnergyNodes.LOGGER.warn("TileEntity is not a EnergyControllerTile!");
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is not a EnergyControllerTile!");
+                    //ctx.setPacketHandled(false);
                     return;
                 }
                 ((EnergyControllerTile) te).transferredThisTick = transferredThisTick;
@@ -31,11 +38,15 @@ public class ClientPacketHandler {
     public static void handleSyncController(Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, IControllerTier tier) {
         NetworkEvent.Context ctx = contextSupplier.get();
         ctx.enqueueWork(() -> {
-            World world = Minecraft.getInstance().level;
+            Level world = Minecraft.getInstance().level;
             if (world != null) {
-                TileEntity te = world.getBlockEntity(pos);
+                BlockEntity te = world.getBlockEntity(pos);
+                if (te == null) {
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is null!");
+                    throw new NullPointerException("ClientPacketHandler#handleSyncController: TileEntity is null!");
+                }
                 if (!(te instanceof EnergyControllerTile)) {
-                    EnergyNodes.LOGGER.warn("TileEntity is not a EnergyControllerTile!");
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is not a EnergyControllerTile!");
                     return;
                 }
                 ((EnergyControllerTile) te).setTier(tier);

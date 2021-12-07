@@ -1,13 +1,17 @@
 package org.zornco.energynodes.datagen;
 
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.data.*;
-import net.minecraft.item.Items;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.Tags;
 import org.zornco.energynodes.Registration;
 
 import javax.annotation.Nonnull;
 import java.util.function.Consumer;
+
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 
 public class RecipeGenerator extends RecipeProvider {
     public RecipeGenerator(DataGenerator gen) {
@@ -15,7 +19,7 @@ public class RecipeGenerator extends RecipeProvider {
     }
 
     @Override
-    protected void buildShapelessRecipes(@Nonnull Consumer<IFinishedRecipe> consumer) {
+    protected void buildCraftingRecipes(@Nonnull Consumer<FinishedRecipe> consumer) {
 
         // ================================================================================================================
         //    BLOCKS

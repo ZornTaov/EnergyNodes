@@ -1,14 +1,13 @@
 package org.zornco.energynodes.item;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.NetworkDirection;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
@@ -29,26 +28,26 @@ public class TierUpgradeItem extends Item {
 
     @Nonnull
     @Override
-    public ActionResultType useOn(@Nonnull ItemUseContext context) {
-        PlayerEntity player = context.getPlayer();
-        World world = context.getLevel();
+    public InteractionResult useOn(@Nonnull UseOnContext context) {
+        Player player = context.getPlayer();
+        Level world = context.getLevel();
         if (world.isClientSide || player == null) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
-        TileEntity tile = world.getBlockEntity(context.getClickedPos());
+        BlockEntity tile = world.getBlockEntity(context.getClickedPos());
         if (tile == null) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
         LazyOptional<IControllerTier> capability = tile.getCapability(Registration.TIER_CAPABILITY);
         if (!capability.isPresent()) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
         if (!(tile instanceof EnergyControllerTile)) {
-            return ActionResultType.FAIL;
+            return InteractionResult.FAIL;
         }
         EnergyControllerTile controller = (EnergyControllerTile) tile;
         if (controller.tier.getLevel() >= this.tier.getLevel()) {
-            return ActionResultType.PASS;
+            return InteractionResult.PASS;
         }
         controller.setTier(this.tier);
         capability.invalidate();
@@ -57,6 +56,6 @@ public class TierUpgradeItem extends Item {
         if (!player.isCreative()) {
             context.getItemInHand().shrink(1);
         }
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

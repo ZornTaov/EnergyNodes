@@ -1,8 +1,8 @@
 package org.zornco.energynodes.network.packets;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.client.ClientPacketHandler;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
@@ -17,11 +17,11 @@ public class PacketEnergyTransferredResponse {
         this.transferredThisTick = te.transferredThisTick;
         this.pos = te.getBlockPos();
     }
-    public PacketEnergyTransferredResponse(PacketBuffer buf) {
+    public PacketEnergyTransferredResponse(FriendlyByteBuf buf) {
         this.transferredThisTick = buf.readLong();
         this.pos = buf.readBlockPos();
     }
-    public static void encode(PacketEnergyTransferredResponse msg, PacketBuffer packetBuffer) {
+    public static void encode(PacketEnergyTransferredResponse msg, FriendlyByteBuf packetBuffer) {
         packetBuffer.writeLong(msg.transferredThisTick);
         packetBuffer.writeBlockPos(msg.pos);
     }

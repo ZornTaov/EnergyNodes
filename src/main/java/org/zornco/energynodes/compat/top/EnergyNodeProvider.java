@@ -1,21 +1,22 @@
 package org.zornco.energynodes.compat.top;
 
 import mcjty.theoneprobe.api.*;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 public class EnergyNodeProvider implements IProbeInfoProvider {
     @Override
-    public String getID() {
-        return EnergyNodes.MOD_ID + "_node";
+    public ResourceLocation getID() {
+        return new ResourceLocation(EnergyNodes.MOD_ID, "_node");
     }
     @Override
-    public void addProbeInfo(ProbeMode probeMode, IProbeInfo info, PlayerEntity playerEntity, World world, BlockState blockState, IProbeHitData iProbeHitData) {
+    public void addProbeInfo(ProbeMode probeMode, IProbeInfo info, Player playerEntity, Level world, BlockState blockState, IProbeHitData iProbeHitData) {
 
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
@@ -23,7 +24,7 @@ public class EnergyNodeProvider implements IProbeInfoProvider {
         EnergyNodeTile tile = (EnergyNodeTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null && tile.controllerPos != null) {
             v.horizontal(center)
-                    .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));
+                    .text(new TranslatableComponent(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));
             /*if (blockState.get(PROP_INOUT) == Flow.OUT )
                 v.horizontal(center)
                         .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))

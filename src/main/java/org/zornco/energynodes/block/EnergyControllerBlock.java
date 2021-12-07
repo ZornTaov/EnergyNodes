@@ -1,26 +1,29 @@
 package org.zornco.energynodes.block;
 
-import mcjty.theoneprobe.api.*;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import org.zornco.energynodes.EnergyNodes;
+//import mcjty.theoneprobe.api.*;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class EnergyControllerBlock extends Block {
+public class EnergyControllerBlock extends BaseEntityBlock {
     public static final DirectionProperty PROP_FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
     public EnergyControllerBlock(Properties properties) {
@@ -29,24 +32,13 @@ public class EnergyControllerBlock extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(PROP_FACING);
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new EnergyControllerTile();
-    }
-
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
         if (context.getPlayer() != null) {
             return this.defaultBlockState()
                     .setValue(PROP_FACING, getFacingFromEntity(context.getClickedPos(), context.getPlayer()));
@@ -54,6 +46,9 @@ public class EnergyControllerBlock extends Block {
         return super.getStateForPlacement(context);
     }
 
+    public RenderShape getRenderShape(BlockState p_49232_) {
+        return RenderShape.MODEL;
+    }
     private static Direction getFacingFromEntity(BlockPos clickedBlock, LivingEntity entity) {
         Direction facing = Direction.getNearest(
                 (float) (entity.getX() - clickedBlock.getX()),
@@ -65,5 +60,16 @@ public class EnergyControllerBlock extends Block {
         }
 
         return facing;
+    }
+
+    @Override
+    @Nullable
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState       state, BlockEntityType<T> type) {
+        return createTickerHelper(type, Registration.ENERGY_CONTROLLER_TILE.get(), EnergyControllerTile::tick);
+    }
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(@Nonnull BlockPos pos, @Nonnull BlockState state) {
+        return new EnergyControllerTile(pos, state);
     }
 }

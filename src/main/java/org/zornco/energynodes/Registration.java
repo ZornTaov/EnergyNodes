@@ -1,26 +1,28 @@
 package org.zornco.energynodes;
 
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraftforge.common.ToolType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryBuilder;
+import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.EnergyNodeBlock;
 //import org.zornco.energynodes.config.EnergyNodesConfig;
@@ -38,13 +40,14 @@ import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
 import javax.annotation.Nonnull;
 import java.util.*;
 
+@Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID)
 public class Registration {
     // ================================================================================================================
     //    Registries
     // ================================================================================================================
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, EnergyNodes.MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, EnergyNodes.MOD_ID);
-    private static final DeferredRegister<TileEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, EnergyNodes.MOD_ID);
+    private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, EnergyNodes.MOD_ID);
     private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, EnergyNodes.MOD_ID);
     public static final DeferredRegister<ControllerTier> TIERS = DeferredRegister.create(ControllerTier.class, EnergyNodes.MOD_ID);
     public static final RegistryObject<ControllerTier> BASE;
@@ -57,10 +60,10 @@ public class Registration {
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
-    private static final AbstractBlock.Properties baseProperty = Block.Properties
+    private static final BlockBehaviour.Properties baseProperty = Block.Properties
             .of(Material.METAL)
-            .strength(3.0f, 128.0f)
-            .harvestTool(ToolType.PICKAXE);
+            .strength(3.0f, 128.0f);
+            //.harvestTool(ToolType.PICKAXE);
 
     // ================================================================================================================
     //    ITEMS
@@ -140,42 +143,26 @@ public class Registration {
     //    TILE ENTITIES
     // ================================================================================================================
     @SuppressWarnings("ConstantConditions")
-    public static final RegistryObject<TileEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
+    public static final RegistryObject<BlockEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
             TILES.register("energy_controller", () ->
-                    TileEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
+                    BlockEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
                     ).build(null));
     @SuppressWarnings("ConstantConditions")
-    public static final RegistryObject<TileEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
+    public static final RegistryObject<BlockEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
             TILES.register("energy_transfer", () ->
-                    TileEntityType.Builder.of(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
+                    BlockEntityType.Builder.of(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
                     ).build(null));
 
     // ================================================================================================================
     //    CAPABILITIES
     // ================================================================================================================
-    @SuppressWarnings("CanBeFinal")
-    @CapabilityInject(IControllerTier.class)
-    public static Capability<IControllerTier> TIER_CAPABILITY = null;
 
-    public static void register()
+    public static Capability<IControllerTier> TIER_CAPABILITY = CapabilityManager.get(new CapabilityToken<>(){});
+
+    @SubscribeEvent
+    public static void registerCapabilities(RegisterCapabilitiesEvent evt)
     {
-        CapabilityManager.INSTANCE.register(IControllerTier.class, new Capability.IStorage<IControllerTier>()
-            {
-                @Override
-                public INBT writeNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side)
-                {
-                    return StringNBT.valueOf(instance.getSerializedName());
-                }
-
-                @Override
-                public void readNBT(Capability<IControllerTier> capability, IControllerTier instance, Direction side, INBT nbt)
-                {
-                    if (!(instance instanceof ControllerTier))
-                        throw new IllegalArgumentException("Can not deserialize to an instance that isn't the default implementation");
-                    instance.setTier(ControllerTier.getTierFromString(nbt.getAsString()));
-                }
-            },
-            ControllerTier::new);
+        evt.register(IControllerTier.class);
     }
 
     // ================================================================================================================
@@ -191,9 +178,8 @@ public class Registration {
         TILES.register(modEventBus);
         ENTITIES.register(modEventBus);
         ClientRegistration.PARTICLE.register(modEventBus);
-        NetworkManager.Register();
     }
-    public static final ItemGroup ITEM_GROUP = new ItemGroup(EnergyNodes.MOD_ID) {
+    public static final CreativeModeTab ITEM_GROUP = new CreativeModeTab(EnergyNodes.MOD_ID) {
         @Nonnull
         @Override
         public ItemStack makeIcon() {

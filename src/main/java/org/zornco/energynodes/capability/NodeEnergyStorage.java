@@ -1,7 +1,7 @@
 package org.zornco.energynodes.capability;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.block.EnergyNodeBlock;
@@ -11,7 +11,7 @@ import org.zornco.energynodes.tile.EnergyNodeTile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<CompoundNBT> {
+public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<CompoundTag> {
     private static final String NBT_ENERGY_KEY = "energy";
     private int energy;
     @Nonnull
@@ -23,14 +23,14 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
         this.nodeTile = tile;
     }
     @Override
-    public CompoundNBT serializeNBT() {
-        CompoundNBT tag = new CompoundNBT();
+    public CompoundTag serializeNBT() {
+        CompoundTag tag = new CompoundTag();
         tag.putInt(NBT_ENERGY_KEY, this.energy);
         return tag;
     }
 
     @Override
-    public void deserializeNBT(CompoundNBT nbt) {
+    public void deserializeNBT(CompoundTag nbt) {
         this.energy = nbt.getInt(NBT_ENERGY_KEY);
     }
 
@@ -54,7 +54,7 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public int getMaxEnergyStored() {
-        return this.energy * 2;
+        return this.energy * 2 + 1;
     }
 
     @Override

@@ -1,8 +1,8 @@
 package org.zornco.energynodes.network.packets;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.client.ClientPacketHandler;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
@@ -19,11 +19,11 @@ public class PacketSyncController {
         this.tier = te.tier;
         this.pos = te.getBlockPos();
     }
-    public PacketSyncController(PacketBuffer buf) {
+    public PacketSyncController(FriendlyByteBuf buf) {
         this.tier = ControllerTier.getTierFromString(buf.readUtf());
         this.pos = buf.readBlockPos();
     }
-    public static void encode(PacketSyncController msg, PacketBuffer packetBuffer) {
+    public static void encode(PacketSyncController msg, FriendlyByteBuf packetBuffer) {
         packetBuffer.writeUtf(msg.tier.getSerializedName());
         packetBuffer.writeBlockPos(msg.pos);
     }

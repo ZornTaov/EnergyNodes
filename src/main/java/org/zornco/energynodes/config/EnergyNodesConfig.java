@@ -79,22 +79,22 @@ public class EnergyNodesConfig {
         SERVER_BUILDER.pop();
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void onLoad(final ModConfig.Loading configEvent) {
 
-        /*tierNameList = new ArrayList<>(tierNameConfig.get());
+        tierNameList = new ArrayList<>(tierNameConfig.get());
         maxConnectionsList = new ArrayList<>(maxConnectionsConfig.get());
         maxTransferSpeedList = new ArrayList<>(maxTransferSpeedConfig.get());
-        maxRadiusList = new ArrayList<>(maxConnectionRadiusConfig.get());*/
-    }
+        maxRadiusList = new ArrayList<>(maxConnectionRadiusConfig.get());
+    }*/
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void onReload(final ModConfig.Reloading configEvent) {
-        /*tierNameList = new ArrayList<>(tierNameConfig.get());
+        tierNameList = new ArrayList<>(tierNameConfig.get());
         maxConnectionsList = new ArrayList<>(maxConnectionsConfig.get());
         maxTransferSpeedList = new ArrayList<>(maxTransferSpeedConfig.get());
-        maxRadiusList = new ArrayList<>(maxConnectionRadiusConfig.get());*/
-    }
+        maxRadiusList = new ArrayList<>(maxConnectionRadiusConfig.get());
+    }*/
 
     private static boolean intArrayTest(Object obj) {
         if (obj instanceof Integer) {

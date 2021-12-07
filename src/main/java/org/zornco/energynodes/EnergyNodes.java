@@ -10,6 +10,8 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.zornco.energynodes.compat.TheOneProbeCompat;
+import org.zornco.energynodes.network.NetworkManager;
+//import org.zornco.energynodes.compat.TheOneProbeCompat;
 
 @Mod(EnergyNodes.MOD_ID)
 public class EnergyNodes
@@ -26,11 +28,10 @@ public class EnergyNodes
         Registration.init(modEventBus);
     }
 
-    public void setup(final FMLCommonSetupEvent event)
+    private void setup(final FMLCommonSetupEvent event)
     {
-        Registration.register();
+        NetworkManager.Register();
     }
-
 
     @SubscribeEvent
     public static void enqueueIMC(final InterModEnqueueEvent event) {

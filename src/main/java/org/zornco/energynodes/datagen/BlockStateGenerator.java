@@ -1,6 +1,6 @@
 package org.zornco.energynodes.datagen;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.client.model.generators.ModelFile;

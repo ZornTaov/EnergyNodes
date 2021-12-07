@@ -1,27 +1,27 @@
 package org.zornco.energynodes.particles;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 
 import javax.annotation.Nonnull;
 
 import static org.zornco.energynodes.tile.client.EnergyControllerTileRenderer.LineTypes.THICCCCC_LINES;
 
-public class EnergyNodeParticle extends SpriteTexturedParticle {
-    private final Vector3d sourcePos;
-    private final Vector3d targetPos;
+public class EnergyNodeParticle extends TextureSheetParticle {
+    private final Vec3 sourcePos;
+    private final Vec3 targetPos;
 
-    protected EnergyNodeParticle(ClientWorld world, double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, float red, float green, float blue) {
+    protected EnergyNodeParticle(ClientLevel world, double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, float red, float green, float blue) {
         super(world, sourceX, sourceY, sourceZ);
-        sourcePos = new Vector3d(sourceX, sourceY, sourceZ);
-        targetPos = new Vector3d(targetX, targetY, targetZ);
+        sourcePos = new Vec3(sourceX, sourceY, sourceZ);
+        targetPos = new Vec3(targetX, targetY, targetZ);
         rCol = red;
         gCol = green;
         bCol = blue;
@@ -30,31 +30,31 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
     }
 
     @Override
-    public void render(@Nonnull IVertexBuilder vert, @Nonnull ActiveRenderInfo info, float tickDelta) {
+    public void render(@Nonnull VertexConsumer vert, @Nonnull Camera info, float tickDelta) {
         // TODO - Renders as black lines until inventory is opened?!
         //super.render(vert, info, tickDelta);
-        MatrixStack matrixStack = new MatrixStack();
-        Vector3d vector3d = info.getPosition();
+        PoseStack matrixStack = new PoseStack();
+        Vec3 vector3d = info.getPosition();
 
         matrixStack.translate(-vector3d.x(), -vector3d.y(), -vector3d.z());
 
-        IRenderTypeBuffer.Impl bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        IVertexBuilder ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
+        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+        //VertexConsumer ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
 
-        renderOctahedron(matrixStack, ivertexbuilder);
+        //renderOctahedron(matrixStack, ivertexbuilder);
 
         bufferSource.endBatch();
     }
 
-    private void renderOctahedron(MatrixStack matrixStack, IVertexBuilder ivertexbuilder) {
+    private void renderOctahedron(PoseStack matrixStack, VertexConsumer ivertexbuilder) {
         double circumscribedRadius = 0.1;
-        Vector3d[] octahedron = new Vector3d[6];
-        octahedron[0] = new Vector3d(-circumscribedRadius, 0, 0);
-        octahedron[1] = new Vector3d(circumscribedRadius, 0, 0);
-        octahedron[2] = new Vector3d(0, -circumscribedRadius, 0);
-        octahedron[3] = new Vector3d(0, circumscribedRadius, 0);
-        octahedron[4] = new Vector3d(0, 0, -circumscribedRadius);
-        octahedron[5] = new Vector3d(0, 0, circumscribedRadius);
+        Vec3[] octahedron = new Vec3[6];
+        octahedron[0] = new Vec3(-circumscribedRadius, 0, 0);
+        octahedron[1] = new Vec3(circumscribedRadius, 0, 0);
+        octahedron[2] = new Vec3(0, -circumscribedRadius, 0);
+        octahedron[3] = new Vec3(0, circumscribedRadius, 0);
+        octahedron[4] = new Vec3(0, 0, -circumscribedRadius);
+        octahedron[5] = new Vec3(0, 0, circumscribedRadius);
         int[] lineLoop1 = {2,4,3,5,2,1,3,0,5,1,4,0,2};
         for (int i: lineLoop1) {
             ivertexbuilder.vertex(matrixStack.last().pose(), (float)(x+octahedron[i].x), (float)(y+octahedron[i].y), (float)(z+octahedron[i].z)).color(rCol, gCol, bCol, 1F).endVertex();
@@ -75,7 +75,7 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
         this.zo = this.z;
 
         //Get the current position of the particle, and figure out the vector of where it's going
-        Vector3d partPos = new Vector3d(this.x, this.y, this.z);
+        Vec3 partPos = new Vec3(this.x, this.y, this.z);
 
         //The total distance between the particle and target
         double totalDistance = targetPos.distanceTo(partPos);
@@ -83,7 +83,7 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
             this.remove();
 
         double speedAdjust = 1;
-        Vector3d lerped = lerp(sourcePos, targetPos, this.age/(double)this.lifetime);
+        Vec3 lerped = lerp(sourcePos, targetPos, this.age/(double)this.lifetime);
         xd = lerped.x() - this.x;// (targetX - this.x) / speedAdjust;
         yd = lerped.y() - this.y;// (targetY - this.y) / speedAdjust;
         zd = lerped.z() - this.z;// (targetZ - this.z) / speedAdjust;
@@ -93,12 +93,12 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
 
     }
 
-    public Vector3d lerp(Vector3d posA, Vector3d posB, double amount) {
+    public Vec3 lerp(Vec3 posA, Vec3 posB, double amount) {
         double f = 1.0-amount;
         double d0 = posA.x * f + posB.x * amount;
         double d1 = posA.y * f + posB.y * amount;
         double d2 = posA.z * f + posB.z * amount;
-        return new Vector3d(d0, d1, d2);
+        return new Vec3(d0, d1, d2);
     }
 
     @Override
@@ -113,16 +113,16 @@ public class EnergyNodeParticle extends SpriteTexturedParticle {
 
     @Nonnull
     @Override
-    public IParticleRenderType getRenderType() {
-        return IParticleRenderType.CUSTOM;
+    public ParticleRenderType getRenderType() {
+        return ParticleRenderType.CUSTOM;
     }
 
-    public static class FACTORY implements IParticleFactory<EnergyNodeParticleData> {
+    public static class FACTORY implements ParticleProvider<EnergyNodeParticleData> {
 
-        public FACTORY(IAnimatedSprite sprites) { }
+        public FACTORY(SpriteSet sprites) { }
 
         @Override
-        public Particle createParticle(EnergyNodeParticleData data, @Nonnull ClientWorld world, double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ) {
+        public Particle createParticle(EnergyNodeParticleData data, @Nonnull ClientLevel world, double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ) {
             return new EnergyNodeParticle(world, sourceX, sourceY, sourceZ, targetX, targetY, targetZ, data.r, data.g, data.b);
         }
     }

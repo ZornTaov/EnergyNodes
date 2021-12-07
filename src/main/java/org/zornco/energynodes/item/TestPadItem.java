@@ -1,11 +1,11 @@
 package org.zornco.energynodes.item;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
@@ -22,11 +22,10 @@ public class TestPadItem extends Item {
 
     @Nonnull
     @Override
-    public ActionResultType useOn(@Nonnull ItemUseContext context) {
-        TileEntity tile = context.getLevel().getBlockEntity(context.getClickedPos());
+    public InteractionResult useOn(@Nonnull UseOnContext context) {
+        BlockEntity tile = context.getLevel().getBlockEntity(context.getClickedPos());
         if (tile != null) {
-            CompoundNBT nbt = new CompoundNBT();
-            nbt = tile.save(nbt);
+            CompoundTag nbt = tile.saveWithFullMetadata();
             if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), nbt.toString());
             }
@@ -44,6 +43,6 @@ public class TestPadItem extends Item {
             }
         }
 
-        return ActionResultType.sidedSuccess(context.getLevel().isClientSide);
+        return InteractionResult.sidedSuccess(context.getLevel().isClientSide);
     }
 }

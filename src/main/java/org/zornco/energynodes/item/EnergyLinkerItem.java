@@ -1,16 +1,16 @@
 package org.zornco.energynodes.item;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
@@ -36,40 +36,40 @@ public class EnergyLinkerItem extends Item {
 
     @Nonnull
     @Override
-    public ActionResultType useOn(@Nonnull ItemUseContext context) {
+    public InteractionResult useOn(@Nonnull UseOnContext context) {
         BlockPos blockpos = context.getClickedPos();
-        World world = context.getLevel();
+        Level world = context.getLevel();
         ItemStack itemstack = context.getItemInHand();
         BlockState blockState = world.getBlockState(blockpos);
-        CompoundNBT compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundNBT();
+        CompoundTag compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundTag();
         if (compoundnbt != null) {
             if (blockState.getBlock() instanceof EnergyNodeBlock) {
-                compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NBTUtil.writeBlockPos(blockpos));
-                Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
+                compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NbtUtils.writeBlockPos(blockpos));
+                Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
                 itemstack.setTag(compoundnbt);
-                return ActionResultType.SUCCESS;
+                return InteractionResult.SUCCESS;
 
             } else if (blockState.getBlock() instanceof EnergyControllerBlock && compoundnbt.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
                 EnergyControllerTile controllerTile = (EnergyControllerTile) world.getBlockEntity(blockpos);
-                BlockPos nodePos = NBTUtil.readBlockPos((CompoundNBT) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+                BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
                 EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(nodePos);
                 if (controllerTile == null) {
-                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.controller_missing")));
-                    return ActionResultType.PASS;
+                    Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.controller_missing")));
+                    return InteractionResult.PASS;
                 }
                 if (nodeTile == null) {
-                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
-                    return ActionResultType.PASS;
+                    Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
+                    return InteractionResult.PASS;
                 }
                 if (blockpos.distManhattan(nodePos) >= controllerTile.tier.getMaxRange()) {
-                    Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.tier.getMaxRange()));
-                    return ActionResultType.PASS;
+                    Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.tier.getMaxRange()));
+                    return InteractionResult.PASS;
                 }
 
-                ActionResultType result = updateControllerPosList(context,
+                InteractionResult result = updateControllerPosList(context,
                         controllerTile,
                         nodeTile);
-                if (result == ActionResultType.SUCCESS) {
+                if (result == InteractionResult.SUCCESS) {
                     if(world.isClientSide)
                         controllerTile.rebuildRenderBounds();
                     compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
@@ -81,11 +81,11 @@ public class EnergyLinkerItem extends Item {
                 return super.useOn(context);
             }
         }
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 
     // TODO - Split and transformed into link/unlink
-    private static ActionResultType updateControllerPosList(@Nonnull ItemUseContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
+    private static InteractionResult updateControllerPosList(@Nonnull UseOnContext context, EnergyControllerTile controller, EnergyNodeTile nodeTile) {
         final EnergyNodeBlock.Flow dir = nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
         Direction hit = context.getClickedFace();
         LazyOptional<IEnergyStorage> storage = nodeTile.getCapability(CapabilityEnergy.ENERGY, hit);
@@ -105,11 +105,11 @@ public class EnergyLinkerItem extends Item {
             nodeTile.controllerPos = null;
             nodeTile.energyStorage.setController(null);
             nodeTile.energyStorage.setEnergyStored(0);
-            Utils.SendSystemMessage(context,new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(nodeFromController)));
+            Utils.SendSystemMessage(context,new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(nodeFromController)));
         } else {
             if (controller.connectedNodes.size() >= controller.tier.getMaxConnections()) {
-                Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.tier.getMaxConnections()));
-                return ActionResultType.PASS;
+                Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.tier.getMaxConnections()));
+                return InteractionResult.PASS;
             }
             controller.connectedNodes.add(nodeFromController);
             switch (dir) {
@@ -137,9 +137,9 @@ public class EnergyLinkerItem extends Item {
 
             nodeTile.controllerPos = controller.getBlockPos().subtract(nodeTile.getBlockPos());
             nodeTile.energyStorage.setController(controller);
-            Utils.SendSystemMessage(context, new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(nodeFromController)));
+            Utils.SendSystemMessage(context, new TranslatableComponent(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(nodeFromController)));
         }
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
 }

@@ -1,8 +1,9 @@
 package org.zornco.energynodes.network;
 
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkDirection;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredRequest;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
@@ -22,9 +23,21 @@ public class NetworkManager {
 
     public static void Register()
     {
-        INSTANCE.registerMessage(0, PacketEnergyTransferredRequest.class,PacketEnergyTransferredRequest::encode, PacketEnergyTransferredRequest::new, PacketEnergyTransferredRequest::handle);
-        INSTANCE.registerMessage(1, PacketEnergyTransferredResponse.class,PacketEnergyTransferredResponse::encode, PacketEnergyTransferredResponse::new, PacketEnergyTransferredResponse::handle);
-        INSTANCE.registerMessage(2, PacketSyncController.class, PacketSyncController::encode, PacketSyncController::new, PacketSyncController::handle);
+        INSTANCE.messageBuilder(PacketEnergyTransferredRequest.class,0, NetworkDirection.PLAY_TO_SERVER)
+            .encoder(PacketEnergyTransferredRequest::encode)
+            .decoder(PacketEnergyTransferredRequest::new)
+            .consumer(PacketEnergyTransferredRequest::handle)
+            .add();
+        INSTANCE.messageBuilder(PacketEnergyTransferredResponse.class,1,NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketEnergyTransferredResponse::encode)
+            .decoder(PacketEnergyTransferredResponse::new)
+            .consumer(PacketEnergyTransferredResponse::handle)
+            .add();
+        INSTANCE.messageBuilder(PacketSyncController.class,2, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketSyncController::encode)
+            .decoder(PacketSyncController::new)
+            .consumer(PacketSyncController::handle)
+            .add();
     }
 
     static long lastEnergyTransferredRequest = -1;

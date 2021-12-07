@@ -1,32 +1,31 @@
 package org.zornco.energynodes.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.tile.EnergyNodeTile;
-import mcjty.theoneprobe.api.*;
+//import mcjty.theoneprobe.api.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class EnergyNodeBlock extends Block {
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
-    public enum Flow implements IStringSerializable {
+public class EnergyNodeBlock extends Block implements EntityBlock {
+
+    public enum Flow implements StringRepresentable {
         OUT,
         IN;
 
@@ -45,7 +44,7 @@ public class EnergyNodeBlock extends Block {
     }
 
     @Override
-    public void onPlace(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
+    public void onPlace(BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide()) {
             for (Direction facing : Direction.values()) {
                 BlockPos neighbor = pos.relative(facing);
@@ -55,7 +54,7 @@ public class EnergyNodeBlock extends Block {
     }
 
     @Override
-    public void neighborChanged(BlockState state, @Nonnull World world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
+    public void neighborChanged(BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
         if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
         {
             Direction facing = Utils.getFacingFromBlockPos(neighbor, pos);
@@ -63,10 +62,10 @@ public class EnergyNodeBlock extends Block {
         }
     }
 
-    private void connectToEnergyStorage(@Nonnull World world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
+    private void connectToEnergyStorage(@Nonnull Level world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
         EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
         if (nodeTile != null) {
-        TileEntity otherTile = world.getBlockEntity(neighbor);
+        BlockEntity otherTile = world.getBlockEntity(neighbor);
         if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
             LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
             if (adjacentStorageOptional.isPresent()) {
@@ -83,18 +82,13 @@ public class EnergyNodeBlock extends Block {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(PROP_INOUT);
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new EnergyNodeTile();
-    }
-
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
+    public BlockEntity newBlockEntity(@Nonnull BlockPos pos, @Nonnull BlockState state) {
+        return new EnergyNodeTile(pos, state);
     }
 }
