@@ -154,21 +154,21 @@ public class EnergyControllerTile extends BlockEntity {
                 .collect(NbtListCollector.toNbtList());
     }
 
-//    @Nonnull
-//    @Override
-//    public CompoundTag getUpdateTag() {
-//        return save(new CompoundTag());
-//    }
-//
-//    @Override
-//    public void handleUpdateTag(CompoundTag tag) {
-//        load(tag);
-//    }
-//
-//    @Override
-//    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-//        return new ClientboundBlockEntityDataPacket(this.worldPosition, -1, this.getUpdateTag());
-//    }
+    @Nonnull
+    @Override
+    public CompoundTag getUpdateTag() {
+        return saveWithoutMetadata();
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
 
     @Override
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
@@ -231,7 +231,7 @@ public class EnergyControllerTile extends BlockEntity {
                     BlockEntity otherTile = tileEntry.getValue();
                     int amountReceivedThisBlock = 0;
                     if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
-                        LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing);
+                        LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
                         if (adjacentStorageOptional.isPresent()) {
                             IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
                                 () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));

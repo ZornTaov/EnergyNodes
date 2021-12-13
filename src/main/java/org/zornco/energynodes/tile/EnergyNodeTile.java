@@ -81,21 +81,21 @@ public class EnergyNodeTile extends BlockEntity {
                     .ifPresent(inbt -> compound.put(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, inbt));
     }
 
-//    @Nonnull
-//    @Override
-//    public CompoundTag getUpdateTag() {
-//        return save(new CompoundTag());
-//    }
-//
-//    @Override
-//    public void handleUpdateTag(CompoundTag tag) {
-//        load(tag);
-//    }
-//
-//    @Override
-//    public ClientboundBlockEntityDataPacket getUpdatePacket() {
-//        return new ClientboundBlockEntityDataPacket(this.worldPosition, Registration.ENERGY_TRANSFER_TILE.get(), this.getUpdateTag());
-//    }
+    @Nonnull
+    @Override
+    public CompoundTag getUpdateTag() {
+        return save(new CompoundTag());
+    }
+
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
+    }
+
+    @Override
+    public ClientboundBlockEntityDataPacket getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
 
     @Override
     public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet){
@@ -131,6 +131,13 @@ public class EnergyNodeTile extends BlockEntity {
                     connectedTiles.replace(ctDir, blockEntity);
                 } else {
                     connectedTiles.remove(ctDir);
+                }
+            }
+            for (Direction dir: Direction.values()) {
+                if (level.isLoaded(worldPosition.relative(dir)) && !connectedTiles.containsKey(dir)) {
+                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(dir));
+                    if (blockEntity != null)
+                        connectedTiles.put(dir, blockEntity);
                 }
             }
             if (energyStorage.getControllerTile() != null) {
