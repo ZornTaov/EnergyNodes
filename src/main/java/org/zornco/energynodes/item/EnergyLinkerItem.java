@@ -94,12 +94,8 @@ public class EnergyLinkerItem extends Item {
         if (controller.connectedNodes.contains(nodeFromController)) {
             controller.connectedNodes.remove(nodeFromController);
             switch (dir) {
-                case IN:
-                    controller.inputs.remove(storage);
-                    break;
-                case OUT:
-                    controller.outputs.remove(storage);
-                    break;
+                case IN -> controller.inputs.remove(storage);
+                case OUT -> controller.outputs.remove(storage);
             }
 
             nodeTile.controllerPos = null;

@@ -1,7 +1,6 @@
 package org.zornco.energynodes.tile;
 
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.*;
@@ -66,8 +65,7 @@ public class EnergyControllerTile extends BlockEntity {
         connectedNodes.forEach(nodePos -> {
             if(level != null) {
                 final BlockEntity tile = level.getBlockEntity(getNodeFromController(nodePos));
-                if (tile instanceof EnergyNodeTile) {
-                    EnergyNodeTile enTile = (EnergyNodeTile) tile;
+                if (tile instanceof EnergyNodeTile enTile) {
                     enTile.controllerPos = null;
                     enTile.energyStorage.setController(null);
                     enTile.energyStorage.setEnergyStored(0);
@@ -349,28 +347,26 @@ public class EnergyControllerTile extends BlockEntity {
                                 nodePos.getZ()-this.worldPosition.getZ());
 
                     switch (state.getValue(EnergyNodeBlock.PROP_INOUT)) {
-                        case IN:
+                        case IN -> {
                             inputs.add(cap);
                             cap.addListener(removed -> {
                                 this.inputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
-                                if(level.isClientSide)
+                                if (level.isClientSide)
                                     this.rebuildRenderBounds();
                             });
-                            break;
-
-                        case OUT:
+                        }
+                        case OUT -> {
                             outputs.add(cap);
                             cap.addListener(removed -> {
                                 this.outputs.remove(removed);
                                 this.connectedNodes.remove(nodePos);
-                                if(level.isClientSide)
+                                if (level.isClientSide)
                                     this.rebuildRenderBounds();
                             });
-                            break;
-
-                        default:
-                            break;
+                        }
+                        default -> {
+                        }
                     }
                 }
             }

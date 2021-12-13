@@ -22,16 +22,16 @@ public class EnergyNodeParticleData implements ParticleOptions {
             Codec.FLOAT.fieldOf("b").forGetter((data) -> data.b)
     ).apply(val, EnergyNodeParticleData::new));
 
-    public static final Deserializer<EnergyNodeParticleData> DESERIALIZER = new Deserializer<EnergyNodeParticleData>() {
+    public static final Deserializer<EnergyNodeParticleData> DESERIALIZER = new Deserializer<>() {
         @Override
         @Nonnull
         public EnergyNodeParticleData fromCommand(@Nonnull ParticleType<EnergyNodeParticleData> type, @Nonnull StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
-            float f = (float)reader.readDouble();
+            float f = (float) reader.readDouble();
             reader.expect(' ');
-            float f1 = (float)reader.readDouble();
+            float f1 = (float) reader.readDouble();
             reader.expect(' ');
-            float f2 = (float)reader.readDouble();
+            float f2 = (float) reader.readDouble();
             return new EnergyNodeParticleData(f, f1, f2);
         }
 

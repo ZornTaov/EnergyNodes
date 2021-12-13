@@ -10,7 +10,6 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.network.NetworkManager;
-import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
 import org.zornco.energynodes.network.packets.PacketSyncController;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -42,10 +41,9 @@ public class TierUpgradeItem extends Item {
         if (!capability.isPresent()) {
             return InteractionResult.FAIL;
         }
-        if (!(tile instanceof EnergyControllerTile)) {
+        if (!(tile instanceof EnergyControllerTile controller)) {
             return InteractionResult.FAIL;
         }
-        EnergyControllerTile controller = (EnergyControllerTile) tile;
         if (controller.tier.getLevel() >= this.tier.getLevel()) {
             return InteractionResult.PASS;
         }

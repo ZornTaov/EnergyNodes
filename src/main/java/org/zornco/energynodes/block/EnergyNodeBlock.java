@@ -9,19 +9,15 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.tile.EnergyNodeTile;
-//import mcjty.theoneprobe.api.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 public class EnergyNodeBlock extends Block implements EntityBlock {
 
@@ -65,19 +61,19 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
     public static void connectToEnergyStorage(@Nonnull Level world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
         EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
         if (nodeTile != null) {
-        BlockEntity otherTile = world.getBlockEntity(neighbor);
-        if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
-            LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
-            if (adjacentStorageOptional.isPresent()) {
-                IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                        () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));
-                int i = adjacentStorage.receiveEnergy(1, true);
-                if (i >0)
-                    nodeTile.connectedTiles.put(facing, otherTile);
+            BlockEntity otherTile = world.getBlockEntity(neighbor);
+            if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
+                LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
+                if (adjacentStorageOptional.isPresent()) {
+                    IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
+                            () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));
+                    int i = adjacentStorage.receiveEnergy(1, true);
+                    if (i >0)
+                        nodeTile.connectedTiles.put(facing, otherTile);
+                }
             }
-        }
-        else
-            nodeTile.connectedTiles.remove(facing);
+            else
+                nodeTile.connectedTiles.remove(facing);
         }
     }
 

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static org.zornco.energynodes.block.EnergyNodeBlock.Flow.*;
 
 public class EnergyNodeTile extends BlockEntity {
     public final NodeEnergyStorage energyStorage;

@@ -8,21 +8,16 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import com.mojang.math.Quaternion;
-import net.minecraft.world.phys.Vec3;
 import com.mojang.math.Vector3f;
 import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraftforge.client.ClientRegistry;
-import org.lwjgl.opengl.GL11;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
-import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.item.EnergyLinkerItem;
@@ -143,19 +138,12 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
         float f3 = 0.0f;
 
         if (orientation != null) {
-            switch (orientation) {
-                case NORTH:
-                    f3 = 180.0F;
-                    break;
-                case WEST:
-                    f3 = 90.0F;
-                    break;
-                case EAST:
-                    f3 = -90.0F;
-                    break;
-                default:
-                    f3 = 0.0f;
-            }
+            f3 = switch (orientation) {
+                case NORTH -> 180.0F;
+                case WEST -> 90.0F;
+                case EAST -> -90.0F;
+                default -> 0.0f;
+            };
         }
         return f3;
     }
