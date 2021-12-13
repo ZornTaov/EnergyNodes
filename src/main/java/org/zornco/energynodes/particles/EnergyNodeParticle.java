@@ -95,9 +95,9 @@ public class EnergyNodeParticle extends Particle {
 
         double speedAdjust = 1;
         Vec3 lerped = lerp(sourcePos, targetPos, this.age/(double)this.lifetime);
-        xd = lerped.x() - this.x;// (targetX - this.x) / speedAdjust;
-        yd = lerped.y() - this.y;// (targetY - this.y) / speedAdjust;
-        zd = lerped.z() - this.z;// (targetZ - this.z) / speedAdjust;
+        xd = (lerped.x() - this.x) / speedAdjust;
+        yd = (lerped.y() - this.y) / speedAdjust;
+        zd = (lerped.z() - this.z) / speedAdjust;
 
         //Perform the ACTUAL move of the particle.
         this.move(this.xd, this.yd, this.zd);
@@ -134,7 +134,7 @@ public class EnergyNodeParticle extends Particle {
 
         @Override
         public Particle createParticle(EnergyNodeParticleData data, @Nonnull ClientLevel world, double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ) {
-            return new EnergyNodeParticle(world, sourceX, sourceY, sourceZ, targetX, targetY, targetZ, data.r, data.g, data.b);
+            return new EnergyNodeParticle(world, sourceX, sourceY, sourceZ, targetX, targetY, targetZ, data.r(), data.g(), data.b());
         }
     }
 }

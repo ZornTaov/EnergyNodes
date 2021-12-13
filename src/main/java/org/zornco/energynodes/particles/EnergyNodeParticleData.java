@@ -12,14 +12,13 @@ import org.zornco.energynodes.ClientRegistration;
 import javax.annotation.Nonnull;
 import java.util.Locale;
 
-import net.minecraft.core.particles.ParticleOptions.Deserializer;
-
-public class EnergyNodeParticleData implements ParticleOptions {
+public record EnergyNodeParticleData(Float r, Float g,
+                                     Float b) implements ParticleOptions {
 
     public static final Codec<EnergyNodeParticleData> CODEC = RecordCodecBuilder.create(val -> val.group(
-            Codec.FLOAT.fieldOf("r").forGetter((data) -> data.r),
-            Codec.FLOAT.fieldOf("g").forGetter((data) -> data.g),
-            Codec.FLOAT.fieldOf("b").forGetter((data) -> data.b)
+        Codec.FLOAT.fieldOf("r").forGetter((data) -> data.r),
+        Codec.FLOAT.fieldOf("g").forGetter((data) -> data.g),
+        Codec.FLOAT.fieldOf("b").forGetter((data) -> data.b)
     ).apply(val, EnergyNodeParticleData::new));
 
     public static final Deserializer<EnergyNodeParticleData> DESERIALIZER = new Deserializer<>() {
@@ -42,16 +41,6 @@ public class EnergyNodeParticleData implements ParticleOptions {
         }
     };
 
-    public final Float r;
-    public final Float g;
-    public final Float b;
-
-    public EnergyNodeParticleData(Float r, Float g, Float b) {
-        this.r = r;
-        this.g = g;
-        this.b = b;
-    }
-
     @Nonnull
     @Override
     public ParticleType<EnergyNodeParticleData> getType() {
@@ -63,6 +52,21 @@ public class EnergyNodeParticleData implements ParticleOptions {
         buf.writeFloat(r);
         buf.writeFloat(g);
         buf.writeFloat(b);
+    }
+
+    @Override
+    public Float r() {
+        return r;
+    }
+
+    @Override
+    public Float g() {
+        return g;
+    }
+
+    @Override
+    public Float b() {
+        return b;
     }
 
     @Nonnull
