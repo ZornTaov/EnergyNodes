@@ -7,6 +7,7 @@ import net.minecraft.client.particle.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 
@@ -14,7 +15,7 @@ import javax.annotation.Nonnull;
 
 import static org.zornco.energynodes.tile.client.EnergyControllerTileRenderer.LineTypes.THICCCCC_LINES;
 
-public class EnergyNodeParticle extends TextureSheetParticle {
+public class EnergyNodeParticle extends Particle {
     private final Vec3 sourcePos;
     private final Vec3 targetPos;
 
@@ -34,16 +35,18 @@ public class EnergyNodeParticle extends TextureSheetParticle {
         // TODO - Renders as black lines until inventory is opened?!
         //super.render(vert, info, tickDelta);
         PoseStack matrixStack = new PoseStack();
+        matrixStack.pushPose();
         Vec3 vector3d = info.getPosition();
 
         matrixStack.translate(-vector3d.x(), -vector3d.y(), -vector3d.z());
 
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        //VertexConsumer ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
+        VertexConsumer ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
 
-        //renderOctahedron(matrixStack, ivertexbuilder);
+        renderOctahedron(matrixStack, ivertexbuilder);
 
         bufferSource.endBatch();
+        matrixStack.popPose();
     }
 
     private void renderOctahedron(PoseStack matrixStack, VertexConsumer ivertexbuilder) {
@@ -57,7 +60,15 @@ public class EnergyNodeParticle extends TextureSheetParticle {
         octahedron[5] = new Vec3(0, 0, circumscribedRadius);
         int[] lineLoop1 = {2,4,3,5,2,1,3,0,5,1,4,0,2};
         for (int i: lineLoop1) {
-            ivertexbuilder.vertex(matrixStack.last().pose(), (float)(x+octahedron[i].x), (float)(y+octahedron[i].y), (float)(z+octahedron[i].z)).color(rCol, gCol, bCol, 1F).endVertex();
+
+            float f = (float)(x+octahedron[i].x);
+            float f1 = (float)(y+octahedron[i].y);
+            float f2 = (float)(z+octahedron[i].z);
+            float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+            f /= f3;
+            f1 /= f3;
+            f2 /= f3;
+            ivertexbuilder.vertex(matrixStack.last().pose(), (float)(x+octahedron[i].x), (float)(y+octahedron[i].y), (float)(z+octahedron[i].z)).color(rCol, gCol, bCol, 1F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
         }
     }
 

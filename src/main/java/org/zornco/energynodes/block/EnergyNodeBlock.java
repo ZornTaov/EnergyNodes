@@ -62,7 +62,7 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
         }
     }
 
-    private void connectToEnergyStorage(@Nonnull Level world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
+    public static void connectToEnergyStorage(@Nonnull Level world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
         EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
         if (nodeTile != null) {
         BlockEntity otherTile = world.getBlockEntity(neighbor);
