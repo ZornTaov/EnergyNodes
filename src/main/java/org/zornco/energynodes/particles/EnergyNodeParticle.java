@@ -41,9 +41,9 @@ public class EnergyNodeParticle extends Particle {
         matrixStack.translate(-vector3d.x(), -vector3d.y(), -vector3d.z());
 
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        VertexConsumer ivertexbuilder = bufferSource.getBuffer(THICCCCC_LINES);
+        VertexConsumer iVertexBuilder = bufferSource.getBuffer(THICCCCC_LINES);
 
-        renderOctahedron(matrixStack, ivertexbuilder);
+        renderOctahedron(matrixStack, iVertexBuilder);
 
         bufferSource.endBatch();
         matrixStack.popPose();
