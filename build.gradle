@@ -255,9 +255,9 @@ dependencies {
     implementation fg.deobf("curse.maven:the-one-probe-245211:3550084")
     implementation fg.deobf("curse.maven:supermartijn642s-core-lib-454372:3544563")
     implementation fg.deobf("curse.maven:trash-cans-394535:3544028")
-    implementation fg.deobf("curse.maven:zerocore-247921:3549383")
-    implementation fg.deobf("curse.maven:extreme-reactors-250277:3549384")
-    implementation fg.deobf("curse.maven:pipez-443900:3546401")
+    //implementation fg.deobf("curse.maven:zerocore-247921:3549383")
+    //implementation fg.deobf("curse.maven:extreme-reactors-250277:3549384")
+    implementation fg.deobf("curse.maven:pipez-443900:3558815")
 
     // compileOnly "mekanism:Mekanism:${mekanism_version}:api"
     // runtimeOnly fg.deobf("mekanism:Mekanism:${mekanism_version}")// core
