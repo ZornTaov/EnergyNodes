@@ -45,6 +45,7 @@ public class EnergyNodeTile extends BlockEntity {
 
     @Override
     public void onLoad() {
+        super.onLoad();
         if (level != null && !level.isClientSide)
         {
             MinecraftServer server = level.getServer();
@@ -70,6 +71,7 @@ public class EnergyNodeTile extends BlockEntity {
 
     @Override
     public void saveAdditional(@Nonnull CompoundTag compound) {
+        super.saveAdditional(compound);
         if (controllerPos != null)
             BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, controllerPos)
                     .resultOrPartial(EnergyNodes.LOGGER::error)
@@ -83,25 +85,29 @@ public class EnergyNodeTile extends BlockEntity {
     @Nonnull
     @Override
     public CompoundTag getUpdateTag() {
-        return save(new CompoundTag());
+        return saveWithoutMetadata();
     }
 
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        load(tag);
-    }
+//    @Override
+//    public void handleUpdateTag(CompoundTag tag) {
+//        load(tag);
+//    }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet){
-        this.handleUpdateTag(packet.getTag());
-        ModelDataManager.requestModelDataRefresh(this);
-        Objects.requireNonNull(this.getLevel()).setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
-    }
+//    @Override
+//    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet){
+//        CompoundTag tag = packet.getTag();
+//
+//        if (tag != null) {
+//            this.load(packet.getTag());
+//            ModelDataManager.requestModelDataRefresh(this);
+//            Objects.requireNonNull(this.getLevel()).setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
+//        }
+//    }
 
     @Nonnull
     @Override

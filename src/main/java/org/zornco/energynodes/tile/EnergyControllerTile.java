@@ -73,6 +73,8 @@ public class EnergyControllerTile extends BlockEntity {
                 }
             }
         });
+
+        EnergyNodes.LOGGER.debug("Controller Removed");
     }
 
     @Override
@@ -122,10 +124,12 @@ public class EnergyControllerTile extends BlockEntity {
                 .findFirst()
                 .orElse(Registration.BASE.get()));
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
+        EnergyNodes.LOGGER.debug("LOAD CN:"+connectedNodes.size());
     }
 
     @Override
     public void saveAdditional(@Nonnull CompoundTag compound) {
+        super.saveAdditional(compound);
         checkConnections();
         compound.put(EnergyNodeConstants.NBT_CONNECTED_INPUT_NODES_KEY, getStorageNbt(inputs));
         compound.put(EnergyNodeConstants.NBT_CONNECTED_OUTPUT_NODES_KEY, getStorageNbt(outputs));
@@ -133,6 +137,7 @@ public class EnergyControllerTile extends BlockEntity {
         compound.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
         compound.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
         compound.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
+        EnergyNodes.LOGGER.debug("SAVEADDITIONAL I:"+inputs.size()+" O:"+outputs.size());
     }
 
     @Nonnull
@@ -158,24 +163,24 @@ public class EnergyControllerTile extends BlockEntity {
         return saveWithoutMetadata();
     }
 
-    @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        load(tag);
-    }
+//    @Override
+//    public void handleUpdateTag(CompoundTag tag) {
+//        load(tag);
+//    }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-    @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
-        if (this.getLevel() != null) {
-            this.handleUpdateTag(packet.getTag());
-            ModelDataManager.requestModelDataRefresh(this);
-            this.getLevel().setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
-        }
-    }
+//    @Override
+//    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet) {
+//        if (this.getLevel() != null) {
+//            this.handleUpdateTag(packet.getTag());
+//            ModelDataManager.requestModelDataRefresh(this);
+//            this.getLevel().setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
+//        }
+//    }
 
     @Nonnull
     @Override
@@ -349,8 +354,10 @@ public class EnergyControllerTile extends BlockEntity {
                     switch (state.getValue(EnergyNodeBlock.PROP_INOUT)) {
                         case IN -> {
                             inputs.add(cap);
+                            EnergyNodes.LOGGER.debug("Input Added I:"+inputs.size());
                             cap.addListener(removed -> {
                                 this.inputs.remove(removed);
+                                EnergyNodes.LOGGER.debug("Input Removed I:"+inputs.size());
                                 this.connectedNodes.remove(nodePos);
                                 if (level.isClientSide)
                                     this.rebuildRenderBounds();
@@ -358,8 +365,10 @@ public class EnergyControllerTile extends BlockEntity {
                         }
                         case OUT -> {
                             outputs.add(cap);
+                            EnergyNodes.LOGGER.debug("Output Added O:"+outputs.size());
                             cap.addListener(removed -> {
                                 this.outputs.remove(removed);
+                                EnergyNodes.LOGGER.debug("Output Removed O:"+outputs.size());
                                 this.connectedNodes.remove(nodePos);
                                 if (level.isClientSide)
                                     this.rebuildRenderBounds();
@@ -373,6 +382,8 @@ public class EnergyControllerTile extends BlockEntity {
         }
 
         connectedNodes.removeAll(invalid);
+        EnergyNodes.LOGGER.debug("connectedNodes Changed CN:"+connectedNodes.size());
+
     }
 
     public void rebuildRenderBounds() {
