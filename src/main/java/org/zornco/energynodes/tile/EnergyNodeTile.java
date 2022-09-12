@@ -46,40 +46,16 @@ public class EnergyNodeTile extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide)
-        {
-            MinecraftServer server = level.getServer();
-            if (server != null) {
-                server.tell(new TickTask(server.getTickCount() + 5, this::LoadConnectedTiles));
-            }
-        }
     }
 
     @Override
     public void load(@Nonnull CompoundTag tag) {
         super.load(tag);
-        if (tag.get(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY) != null)
-            BlockPos.CODEC.decode(NbtOps.INSTANCE, tag.get(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY))
-                    .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(blockPosINBTPair -> this.controllerPos = blockPosINBTPair.getFirst());
-        if (tag.get(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY) != null)
-            Utils.DIRECTION_LIST_CODEC.decode(NbtOps.INSTANCE, tag.getList(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, Tag.TAG_INT_ARRAY))
-                    .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(listINBTPair -> listINBTPair.getFirst().forEach(direction -> connectedTiles.put(direction,
-                            null)));
     }
 
     @Override
     public void saveAdditional(@Nonnull CompoundTag compound) {
         super.saveAdditional(compound);
-        if (controllerPos != null)
-            BlockPos.CODEC.encodeStart(NbtOps.INSTANCE, controllerPos)
-                    .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(inbt -> compound.put(EnergyNodeConstants.NBT_CONTROLLER_POS_KEY, inbt));
-        if (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT && connectedTiles.size() != 0)
-            Utils.DIRECTION_LIST_CODEC.encodeStart(NbtOps.INSTANCE, new ArrayList<>(connectedTiles.keySet()))
-                    .resultOrPartial(EnergyNodes.LOGGER::error)
-                    .ifPresent(inbt -> compound.put(EnergyNodeConstants.NBT_CONNECTED_TILES_KEY, inbt));
     }
 
     @Nonnull
@@ -88,26 +64,12 @@ public class EnergyNodeTile extends BlockEntity {
         return saveWithoutMetadata();
     }
 
-//    @Override
-//    public void handleUpdateTag(CompoundTag tag) {
-//        load(tag);
-//    }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
     }
 
-//    @Override
-//    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet){
-//        CompoundTag tag = packet.getTag();
-//
-//        if (tag != null) {
-//            this.load(packet.getTag());
-//            ModelDataManager.requestModelDataRefresh(this);
-//            Objects.requireNonNull(this.getLevel()).setBlocksDirty(this.worldPosition, this.getBlockState(), this.getBlockState());
-//        }
-//    }
 
     @Nonnull
     @Override
@@ -122,41 +84,5 @@ public class EnergyNodeTile extends BlockEntity {
     public void invalidateCaps() {
         super.invalidateCaps();
         energy.invalidate();
-    }
-
-    private void LoadConnectedTiles() {
-        if (level != null) {
-
-            if (controllerPos != null && level.isLoaded(controllerPos.offset(worldPosition))) {
-                this.energyStorage.setController((EnergyControllerTile) level.getBlockEntity(controllerPos.offset(worldPosition)));
-            }
-            for (Direction ctDir : connectedTiles.keySet()) {
-                if (level.isLoaded(worldPosition.relative(ctDir))) {
-                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
-                    connectedTiles.replace(ctDir, blockEntity);
-                } else {
-                    connectedTiles.remove(ctDir);
-                }
-            }
-            for (Direction dir: Direction.values()) {
-                if (level.isLoaded(worldPosition.relative(dir)) && !connectedTiles.containsKey(dir)) {
-                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(dir));
-                    if (blockEntity != null)
-                        connectedTiles.put(dir, blockEntity);
-                }
-            }
-            if (energyStorage.getControllerTile() != null) {
-                energy.addListener(removed -> {
-                    energyStorage.getControllerTile().connectedNodes.remove(this.getBlockPos().subtract(controllerPos));
-
-                    switch (getBlockState().getValue(EnergyNodeBlock.PROP_INOUT)) {
-                        case IN -> energyStorage.getControllerTile().inputs.remove(removed);
-                        case OUT -> energyStorage.getControllerTile().outputs.remove(removed);
-                    }
-
-                    energyStorage.getControllerTile().setChanged();
-                });
-            }
-        }
     }
 }

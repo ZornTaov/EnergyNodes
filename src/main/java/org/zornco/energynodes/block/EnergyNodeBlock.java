@@ -40,41 +40,13 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void onPlace(BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
-        if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide()) {
-            for (Direction facing : Direction.values()) {
-                BlockPos neighbor = pos.relative(facing);
-                connectToEnergyStorage(world, pos, facing, neighbor);
-            }
-        }
+    public void onPlace(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
+
     }
 
     @Override
-    public void neighborChanged(BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
-        if (state.getValue(PROP_INOUT) == Flow.OUT && !world.isClientSide())
-        {
-            Direction facing = Utils.getFacingFromBlockPos(neighbor, pos);
-            connectToEnergyStorage(world, pos, facing, neighbor);
-        }
-    }
+    public void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
 
-    public static void connectToEnergyStorage(@Nonnull Level world, @Nonnull BlockPos pos, Direction facing, BlockPos neighbor) {
-        EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(pos);
-        if (nodeTile != null) {
-            BlockEntity otherTile = world.getBlockEntity(neighbor);
-            if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
-                LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(ForgeCapabilities.ENERGY, facing.getOpposite());
-                if (adjacentStorageOptional.isPresent()) {
-                    IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
-                            () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));
-                    int i = adjacentStorage.receiveEnergy(1, true);
-                    if (i >0)
-                        nodeTile.connectedTiles.put(facing, otherTile);
-                }
-            }
-            else
-                nodeTile.connectedTiles.remove(facing);
-        }
     }
 
     @Override

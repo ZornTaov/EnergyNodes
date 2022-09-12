@@ -1,25 +1,25 @@
-package org.zornco.energynodes.capability;
+package org.zornco.energynodes.capability.old;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.energy.IEnergyStorage;
-import org.zornco.energynodes.block.EnergyNodeBlock;
-import org.zornco.energynodes.tile.EnergyControllerTile;
-import org.zornco.energynodes.tile.EnergyNodeTile;
+import org.zornco.energynodes.block.old.EnergyNodeBlockOLD;
+import org.zornco.energynodes.tile.old.EnergyControllerTileOLD;
+import org.zornco.energynodes.tile.old.EnergyNodeTileOLD;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<CompoundTag> {
+public class NodeEnergyStorageOLD implements IEnergyStorage, INBTSerializable<CompoundTag> {
     private static final String NBT_ENERGY_KEY = "energy";
     private int energy;
     @Nonnull
-    private final EnergyNodeTile nodeTile;
+    private final EnergyNodeTileOLD nodeTile;
 
     @Nullable
-    private EnergyControllerTile controllerTile;
-    public NodeEnergyStorage(@Nonnull EnergyNodeTile tile) {
+    private EnergyControllerTileOLD controllerTile;
+    public NodeEnergyStorageOLD(@Nonnull EnergyNodeTileOLD tile) {
         this.nodeTile = tile;
     }
     @Override
@@ -36,8 +36,8 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public int receiveEnergy(int maxReceive, boolean simulate) {
-        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.IN) {
-            //return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
+        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlockOLD.PROP_INOUT) == EnergyNodeBlockOLD.Flow.IN) {
+            return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
         }
         return 0;
     }
@@ -59,19 +59,19 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
 
     @Override
     public boolean canExtract() {
-        return nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.OUT;
+        return nodeTile.getBlockState().getValue(EnergyNodeBlockOLD.PROP_INOUT) == EnergyNodeBlockOLD.Flow.OUT;
     }
 
     @Override
     public boolean canReceive() {
-        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT) == EnergyNodeBlock.Flow.IN) {
-            //return this.controllerTile.canReceiveEnergy(nodeTile);
+        if (this.controllerTile != null && nodeTile.getBlockState().getValue(EnergyNodeBlockOLD.PROP_INOUT) == EnergyNodeBlockOLD.Flow.IN) {
+            return this.controllerTile.canReceiveEnergy(nodeTile);
         }
         return false;
     }
 
     @Nonnull
-    public EnergyNodeTile getNodeTile() {
+    public EnergyNodeTileOLD getNodeTile() {
         return nodeTile;
     }
 
@@ -79,12 +79,12 @@ public class NodeEnergyStorage implements IEnergyStorage, INBTSerializable<Compo
         return this.nodeTile.getBlockPos();
     }
 
-    public void setController(EnergyControllerTile controllerTile) {
+    public void setController(EnergyControllerTileOLD controllerTile) {
         this.controllerTile = controllerTile;
     }
 
     @Nullable
-    public EnergyControllerTile getControllerTile() {
+    public EnergyControllerTileOLD getControllerTile() {
         return controllerTile;
     }
 
