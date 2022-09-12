@@ -3,14 +3,13 @@ package org.zornco.energynodes.tiers;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.Registration;
 
 import javax.annotation.Nonnull;
 import java.util.Locale;
 
-public class ControllerTier extends ForgeRegistryEntry<ControllerTier> implements IControllerTier, INBTSerializable<Tag> {
+public class ControllerTier implements IControllerTier, INBTSerializable<Tag> {
     private String name;
     private int level;
     private int maxTransfer;

@@ -10,8 +10,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.tile.EnergyNodeTile;
@@ -63,7 +63,7 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
         if (nodeTile != null) {
             BlockEntity otherTile = world.getBlockEntity(neighbor);
             if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
-                LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
+                LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(ForgeCapabilities.ENERGY, facing.getOpposite());
                 if (adjacentStorageOptional.isPresent()) {
                     IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
                             () -> new RuntimeException("Failed to get present adjacent storage for pos " + neighbor));

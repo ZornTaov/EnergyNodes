@@ -72,7 +72,7 @@ public record EnergyNodeParticleData(Float r, Float g,
     @Nonnull
     @Override
     public String writeToString() {
-        return String.format(Locale.ROOT, "%s %.5f %.5f %.5f", getType().getRegistryName(), r, g, b);
+        return String.format(Locale.ROOT, "%s %.5f %.5f %.5f", ClientRegistration.ENERGY.getId(), r, g, b);
     }
 
 }

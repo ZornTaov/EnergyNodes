@@ -17,7 +17,7 @@ public class BlockStateGenerator extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        ModelFile controllerModel = models().orientable(Objects.requireNonNull(Registration.ENERGY_CONTROLLER_BLOCK.get().getRegistryName()).getPath(),
+        ModelFile controllerModel = models().orientable(Objects.requireNonNull(Registration.ENERGY_CONTROLLER_BLOCK.getId()).getPath(),
                 new ResourceLocation(EnergyNodes.MOD_ID, "block/controller_side"),
                 new ResourceLocation(EnergyNodes.MOD_ID, "block/controller_screen"),
                 new ResourceLocation(EnergyNodes.MOD_ID, "block/controller_side")

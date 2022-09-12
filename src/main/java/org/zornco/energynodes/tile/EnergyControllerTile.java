@@ -15,10 +15,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
@@ -213,7 +212,7 @@ public class EnergyControllerTile extends BlockEntity {
                         .stream()
                         .filter(entry -> entry.getValue() != null)
                         .mapToInt(tile -> tile.getValue()
-                                .getCapability(CapabilityEnergy.ENERGY,
+                                .getCapability(ForgeCapabilities.ENERGY,
                                     tile.getKey().getOpposite())
                                 .map(iEnergyStorage -> (iEnergyStorage.canReceive() ||
                                         iEnergyStorage.getEnergyStored() / iEnergyStorage.getMaxEnergyStored() != 1) ? 1 : 0)
@@ -234,7 +233,7 @@ public class EnergyControllerTile extends BlockEntity {
                     BlockEntity otherTile = tileEntry.getValue();
                     int amountReceivedThisBlock = 0;
                     if (otherTile != null && !(otherTile instanceof EnergyNodeTile)) {
-                        LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(CapabilityEnergy.ENERGY, facing.getOpposite());
+                        LazyOptional<IEnergyStorage> adjacentStorageOptional = otherTile.getCapability(ForgeCapabilities.ENERGY, facing.getOpposite());
                         if (adjacentStorageOptional.isPresent()) {
                             IEnergyStorage adjacentStorage = adjacentStorageOptional.orElseThrow(
                                 () -> new RuntimeException("Failed to get present adjacent storage for pos " + this.worldPosition));
@@ -340,7 +339,7 @@ public class EnergyControllerTile extends BlockEntity {
                 final BlockState state = level.getBlockState(nodePos);
                 final BlockEntity tn = level.getBlockEntity(nodePos);
                 if (tn instanceof EnergyNodeTile) {
-                    final LazyOptional<IEnergyStorage> cap = tn.getCapability(CapabilityEnergy.ENERGY, null);
+                    final LazyOptional<IEnergyStorage> cap = tn.getCapability(ForgeCapabilities.ENERGY, null);
                     if (!cap.isPresent()) {
                         invalid.add(nodePos);
                         continue;

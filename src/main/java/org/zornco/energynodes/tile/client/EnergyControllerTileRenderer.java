@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
@@ -88,7 +88,7 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
         matrixStack.scale(1/(textWidth * scale), 1/(textWidth * scale), textWidth);
         matrixStack.translate(-0.35F, -0.35F, 0.0F);
         matrixStack.scale(1/80F, 1/80F, textWidth);
-        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(new TranslatableComponent(EnergyNodes.MOD_ID.concat(".ter.").concat(te.tier.getSerializedName())).getString(256),
+        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(Component.translatable(EnergyNodes.MOD_ID.concat(".ter.").concat(te.tier.getSerializedName())).getString(256),
                 115), 0f, 0f, 0xffffff, false, matrixStack.last().pose(), buffer, false, 0, 140);
         matrixStack.popPose();
 

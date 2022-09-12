@@ -18,19 +18,19 @@ public class ItemStateGenerator extends ItemModelProvider {
 
     @Override
     protected void registerModels() {
-        singleTexture(Objects.requireNonNull(Registration.TEST_PAD_ITEM.get().getRegistryName()).getPath(),
+        singleTexture(Objects.requireNonNull(Registration.TEST_PAD_ITEM.getId()).getPath(),
                 new ResourceLocation("item/handheld"),
                 "layer0", new ResourceLocation(EnergyNodes.MOD_ID, "item/test_pad"));
-        singleTexture(Objects.requireNonNull(Registration.ENERGY_LINKER_ITEM.get().getRegistryName()).getPath(),
+        singleTexture(Objects.requireNonNull(Registration.ENERGY_LINKER_ITEM.getId()).getPath(),
                 new ResourceLocation("item/handheld"),
                 "layer0", new ResourceLocation(EnergyNodes.MOD_ID, "item/energy_linker"));
-        singleTexture(Objects.requireNonNull(Registration.SAGE_MANIFEST_ITEM.get().getRegistryName()).getPath(),
+        singleTexture(Objects.requireNonNull(Registration.SAGE_MANIFEST_ITEM.getId()).getPath(),
                 new ResourceLocation("item/handheld"),
                 "layer0", new ResourceLocation(EnergyNodes.MOD_ID, "item/sages_manifest"));
-        Registration.TIER_UPGRADES_MAP.values().stream().map(RegistryObject::get).forEach(tier ->
-                singleTexture(Objects.requireNonNull(tier.getRegistryName()).getPath(),
+        Registration.TIER_UPGRADES_MAP.values().stream().forEach(tier ->
+                singleTexture(Objects.requireNonNull(tier.getId()).getPath(),
                         new ResourceLocation("item/handheld"),
                         "layer0",
-                        new ResourceLocation(EnergyNodes.MOD_ID, "item/" + tier.getRegistryName().getPath())));
+                        new ResourceLocation(EnergyNodes.MOD_ID, "item/" + tier.getId().getPath())));
     }
 }

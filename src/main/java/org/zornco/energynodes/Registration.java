@@ -32,6 +32,7 @@ import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.function.Supplier;
 
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
@@ -40,21 +41,14 @@ public class Registration {
     // ================================================================================================================
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, EnergyNodes.MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, EnergyNodes.MOD_ID);
-    private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, EnergyNodes.MOD_ID);
-    private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, EnergyNodes.MOD_ID);
+    private static final DeferredRegister<BlockEntityType<?>> TILES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, EnergyNodes.MOD_ID);
+    private static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, EnergyNodes.MOD_ID);
     public static final ResourceLocation TierRec = new ResourceLocation(EnergyNodes.MOD_ID, "tiers");
     public static final DeferredRegister<ControllerTier> TIERS = DeferredRegister.create(TierRec, EnergyNodes.MOD_ID);
+
+    public static final Supplier<IForgeRegistry<ControllerTier>> TIERS_DEF_REGISTRY = TIERS.makeRegistry(RegistryBuilder::new);
+
     public static final RegistryObject<ControllerTier> BASE;
-
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public static void newRegistries(final NewRegistryEvent evt) {
-        final var b = new RegistryBuilder<ControllerTier>()
-            .setName(TierRec)
-            .setType(ControllerTier.class);
-
-        evt.create(b);
-    }
 
     // ================================================================================================================
     //   PROPERTIES

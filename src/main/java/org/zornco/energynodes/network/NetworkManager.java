@@ -26,17 +26,17 @@ public class NetworkManager {
         INSTANCE.messageBuilder(PacketEnergyTransferredRequest.class,0, NetworkDirection.PLAY_TO_SERVER)
             .encoder(PacketEnergyTransferredRequest::encode)
             .decoder(PacketEnergyTransferredRequest::new)
-            .consumer(PacketEnergyTransferredRequest::handle)
+            .consumerMainThread(PacketEnergyTransferredRequest::handle)
             .add();
         INSTANCE.messageBuilder(PacketEnergyTransferredResponse.class,1,NetworkDirection.PLAY_TO_CLIENT)
             .encoder(PacketEnergyTransferredResponse::encode)
             .decoder(PacketEnergyTransferredResponse::new)
-            .consumer(PacketEnergyTransferredResponse::handle)
+            .consumerMainThread(PacketEnergyTransferredResponse::handle)
             .add();
         INSTANCE.messageBuilder(PacketSyncController.class,2, NetworkDirection.PLAY_TO_CLIENT)
             .encoder(PacketSyncController::encode)
             .decoder(PacketSyncController::new)
-            .consumer(PacketSyncController::handle)
+            .consumerMainThread(PacketSyncController::handle)
             .add();
     }
 

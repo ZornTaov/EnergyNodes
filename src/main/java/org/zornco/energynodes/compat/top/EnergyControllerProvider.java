@@ -1,10 +1,10 @@
 package org.zornco.energynodes.compat.top;
 
 import mcjty.theoneprobe.api.*;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -24,7 +24,7 @@ public class EnergyControllerProvider implements IProbeInfoProvider {
         EnergyControllerTile tile = (EnergyControllerTile) world.getBlockEntity(iProbeHitData.getPos());
         if (tile != null) {
             v.horizontal(center)
-                    .text(new TranslatableComponent(EnergyNodes.MOD_ID.concat(".top.transferred"), tile.transferredThisTick));
+                    .text(Component.translatable(EnergyNodes.MOD_ID.concat(".top.transferred"), tile.transferredThisTick));
         }
     }
 }

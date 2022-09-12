@@ -5,7 +5,7 @@ import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.RegistryObject;
@@ -29,7 +29,7 @@ public class ClientRegistration {
 
 
     @SubscribeEvent
-    public static void registerFactories(ParticleFactoryRegisterEvent event) {
+    public static void registerFactories(RegisterParticleProvidersEvent event) {
         ParticleEngine manager = Minecraft.getInstance().particleEngine;
         manager.register(ENERGY.get(), EnergyNodeParticle.FACTORY::new);
 
