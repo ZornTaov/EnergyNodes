@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
@@ -16,6 +17,7 @@ import com.mojang.math.Quaternion;
 import com.mojang.math.Vector3f;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.block.EnergyControllerBlock;
@@ -88,7 +90,7 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
         matrixStack.scale(1/(textWidth * scale), 1/(textWidth * scale), textWidth);
         matrixStack.translate(-0.35F, -0.35F, 0.0F);
         matrixStack.scale(1/80F, 1/80F, textWidth);
-        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(Component.translatable(EnergyNodes.MOD_ID.concat(".ter.").concat(te.tier.getSerializedName())).getString(256),
+        fontrenderer.drawInBatch(fontrenderer.plainSubstrByWidth(Component.translatable(EnergyNodes.MOD_ID.concat(".ter.").concat(te.getTier().getSerializedName())).getString(256),
                 115), 0f, 0f, 0xffffff, false, matrixStack.last().pose(), buffer, false, 0, 140);
         matrixStack.popPose();
 
@@ -101,35 +103,35 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
 
             matrixStack.translate(0.5F, 0.5, 0.5);
 
-//            te.inputs.forEach(input -> input.ifPresent(inputNode -> {
-//                Vec3 inputPos = Vec3.atCenterOf(((NodeEnergyStorage)inputNode).getLocation()).subtract(vector3d);
-//
-//                float f = (float)inputPos.x;
-//                float f1 = (float)inputPos.y;
-//                float f2 = (float)inputPos.z;
-//                float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
-//                f /= f3;
-//                f1 /= f3;
-//                f2 /= f3;
-//                lines.vertex(matrixStack.last().pose(), 0,0,0).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-//                lines.vertex(matrixStack.last().pose(), (float) inputPos.x, (float) inputPos.y, (float) inputPos.z).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-//            }));
-//            te.outputs.forEach(output -> output.ifPresent(outputNode -> {
-//                Vec3 outputPos = Vec3.atCenterOf(((NodeEnergyStorage)outputNode).getLocation()).subtract(vector3d);
-//
-//                float f = (float)outputPos.x;
-//                float f1 = (float)outputPos.y;
-//                float f2 = (float)outputPos.z;
-//                float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
-//                f /= f3;
-//                f1 /= f3;
-//                f2 /= f3;
-//                lines.vertex(matrixStack.last().pose(),0,0,0).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-//                lines.vertex(matrixStack.last().pose(), (float) outputPos.x, (float) outputPos.y, (float) outputPos.z).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-//            }));
+            te.getGraph().getInputNodes().forEach(inputNode -> {
+                Vec3 inputPos = Vec3.atCenterOf(inputNode.pos()).subtract(vector3d);
 
-            //AxisAlignedBB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
-            //WorldRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
+                float f = (float)inputPos.x;
+                float f1 = (float)inputPos.y;
+                float f2 = (float)inputPos.z;
+                float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+                f /= f3;
+                f1 /= f3;
+                f2 /= f3;
+                lines.vertex(matrixStack.last().pose(), 0,0,0).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+                lines.vertex(matrixStack.last().pose(), (float) inputPos.x, (float) inputPos.y, (float) inputPos.z).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+            });
+            te.getGraph().getOutputNodes().forEach(outputNode -> {
+                Vec3 outputPos = Vec3.atCenterOf(outputNode.pos()).subtract(vector3d);
+
+                float f = (float)outputPos.x;
+                float f1 = (float)outputPos.y;
+                float f2 = (float)outputPos.z;
+                float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
+                f /= f3;
+                f1 /= f3;
+                f2 /= f3;
+                lines.vertex(matrixStack.last().pose(),0,0,0).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+                lines.vertex(matrixStack.last().pose(), (float) outputPos.x, (float) outputPos.y, (float) outputPos.z).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+            });
+
+            AABB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
+            LevelRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
             matrixStack.popPose();
         }
 

@@ -16,7 +16,7 @@ public class PacketSyncController {
     private final IControllerTier tier;
 
     public PacketSyncController(EnergyControllerTile te) {
-        this.tier = te.tier;
+        this.tier = te.getTier();
         this.pos = te.getBlockPos();
     }
     public PacketSyncController(FriendlyByteBuf buf) {

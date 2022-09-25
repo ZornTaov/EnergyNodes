@@ -9,6 +9,7 @@ import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
+import javax.annotation.Nonnull;
 import java.util.function.Supplier;
 
 public class ClientPacketHandler {
@@ -35,7 +36,7 @@ public class ClientPacketHandler {
         });
     }
 
-    public static void handleSyncController(Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, IControllerTier tier) {
+    public static void handleSyncController(@Nonnull Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, IControllerTier tier) {
         NetworkEvent.Context ctx = contextSupplier.get();
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;
@@ -50,6 +51,26 @@ public class ClientPacketHandler {
                     return;
                 }
                 ((EnergyControllerTile) te).setTier(tier);
+            }
+            ctx.setPacketHandled(true);
+        });
+    }
+    public static void handleRemoveNode(@Nonnull Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, BlockPos nodePos) {
+        NetworkEvent.Context ctx = contextSupplier.get();
+        ctx.enqueueWork(() -> {
+            Level world = Minecraft.getInstance().level;
+            if (world != null) {
+                BlockEntity te = world.getBlockEntity(pos);
+                if (te == null) {
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is null!");
+                    throw new NullPointerException("ClientPacketHandler#handleSyncController: TileEntity is null!");
+                }
+                if (!(te instanceof EnergyControllerTile)) {
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is not a EnergyControllerTile!");
+                    return;
+                }
+                ((EnergyControllerTile) te).getGraph().removeInput(nodePos);
+                ((EnergyControllerTile) te).getGraph().removeOutput(nodePos);
             }
             ctx.setPacketHandled(true);
         });

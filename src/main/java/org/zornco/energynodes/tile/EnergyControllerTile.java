@@ -24,7 +24,10 @@ import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.block.EnergyNodeBlock;
+import org.zornco.energynodes.block.IControllerNode;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
+import org.zornco.energynodes.graph.ConnectionGraph;
+import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.nbt.NbtListCollector;
 import org.zornco.energynodes.particles.EnergyNodeParticleData;
@@ -35,7 +38,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-public class EnergyControllerTile extends BlockEntity {
+public class EnergyControllerTile extends BlockEntity implements IControllerNode {
 
     protected int ticks = 0;
     protected long totalEnergyTransferred = 0;
@@ -44,13 +47,18 @@ public class EnergyControllerTile extends BlockEntity {
     public long transferredThisTick;
     private AABB renderBounds;
 
-    public IControllerTier tier;
+    private IControllerTier tier;
     private LazyOptional<IControllerTier> tierLO;
+    private final ConnectionGraph graph;
 
     public EnergyControllerTile(@Nonnull BlockPos pos, @Nonnull BlockState state) {
         super(Registration.ENERGY_CONTROLLER_TILE.get(), pos, state);
+
+        if(!state.is(Registration.ENERGY_CONTROLLER_BLOCK.get()))
+            EnergyNodes.LOGGER.fatal("Invalid Controller created!");
         this.tier = new ControllerTier();
         tierLO = LazyOptional.of(() -> this.tier);
+        graph = new ConnectionGraph(pos);
     }
 
     @Override
@@ -86,17 +94,19 @@ public class EnergyControllerTile extends BlockEntity {
                 .findFirst()
                 .orElse(Registration.BASE.get()));
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
+        this.graph.deserializeNBT(tag.getCompound("graph"));
     }
 
     @Override
-    public void saveAdditional(@Nonnull CompoundTag compound) {
-        super.saveAdditional(compound);
+    public void saveAdditional(@Nonnull CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        compound.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
-        compound.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
-        compound.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
+        tag.putLong(EnergyNodeConstants.NBT_TOTAL_ENERGY_TRANSFERRED_KEY, this.totalEnergyTransferred);
+        tag.putLong(EnergyNodeConstants.NBT_TRANSFERRED_THIS_TICK_KEY, this.transferredThisTick);
+        tag.putString(EnergyNodeConstants.NBT_TIER, this.tier.getSerializedName());
+        tag.put("graph", this.graph.serializeNBT());
+
     }
-
 
     @Nonnull
     @Override
@@ -116,6 +126,10 @@ public class EnergyControllerTile extends BlockEntity {
             return tierLO.cast();
 
         return super.getCapability(cap, side);
+    }
+
+    public ConnectionGraph getGraph() {
+        return graph;
     }
 
     static public void tick(@Nonnull Level level, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nonnull BlockEntity tile) {
@@ -149,30 +163,34 @@ public class EnergyControllerTile extends BlockEntity {
             && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem) {
             // TODO - Particles overhaul once caps are in
             // TODO - Maybe convert particles into TER code only?
-//            inputs.forEach(input -> input.ifPresent(inputNode -> {
-//                BlockPos inputPos = ((NodeEnergyStorage)inputNode).getLocation();
-//                Vec3 spawn = Vec3.atCenterOf(inputPos);
-//                Vec3 dest = Vec3.atCenterOf(worldPosition);
-//                EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
-//                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
-//            }));
-//
-//            outputs.forEach(output -> output.ifPresent(outputNode -> {
-//                BlockPos outputPos = ((NodeEnergyStorage) outputNode).getLocation();
-//                Vec3 spawn = Vec3.atCenterOf(worldPosition);
-//                Vec3 dest = Vec3.atCenterOf(outputPos);
-//                EnergyNodeParticleData data = new EnergyNodeParticleData(1f, .5f, .1f);
-//                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
-//            }));
+            getGraph().getInputNodes().forEach(input -> {
+                Vec3 spawn = Vec3.atCenterOf(input.pos());
+                Vec3 dest = Vec3.atCenterOf(worldPosition);
+                EnergyNodeParticleData data = new EnergyNodeParticleData(.2f, .5f, 1f);
+                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+            });
+
+            getGraph().getOutputNodes().forEach(output -> {
+                Vec3 spawn = Vec3.atCenterOf(worldPosition);
+                Vec3 dest = Vec3.atCenterOf(output.pos());
+                EnergyNodeParticleData data = new EnergyNodeParticleData(1f, .5f, .1f);
+                level.addParticle(data, spawn.x, spawn.y, spawn.z, dest.x, dest.y, dest.z);
+            });
         }
     }
 
     public void rebuildRenderBounds() {
         this.renderBounds = super.getRenderBoundingBox();
-//        for (BlockPos nodePos : connectedNodes) {
-//            AABB aabbNodePos = AABB.ofSize(Vec3.atCenterOf(getNodeFromController(nodePos)), 1, 1, 1);
-//            renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
-//        }
+        List<BlockPos> allNodes = new ArrayList<>();
+        allNodes.addAll(getGraph().getOutputNodes().stream().map(Node::pos).toList());
+        allNodes.addAll(getGraph().getInputNodes().stream().map(Node::pos).toList());
+
+        //List<BlockPos> blockPos = getGraph().getNodeGraph().nodes().stream().map(Node::pos).toList();
+
+        for (BlockPos nodePos : allNodes) {
+            AABB aabbNodePos = AABB.ofSize(Vec3.atCenterOf(getNodeFromController(nodePos)), 1, 1, 1);
+            renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
+        }
     }
 
     @Override
@@ -184,6 +202,12 @@ public class EnergyControllerTile extends BlockEntity {
         this.tier = tier;
         this.tierLO = LazyOptional.of(() -> tier);
     }
+
+    @Override
+    public IControllerTier getTier() {
+        return tier;
+    }
+
     private BlockPos getNodeFromController(BlockPos nodePos)
     {
         return worldPosition.offset(nodePos);

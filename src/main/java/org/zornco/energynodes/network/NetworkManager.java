@@ -7,6 +7,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredRequest;
 import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
+import org.zornco.energynodes.network.packets.PacketRemoveNode;
 import org.zornco.energynodes.network.packets.PacketSyncController;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
@@ -37,6 +38,11 @@ public class NetworkManager {
             .encoder(PacketSyncController::encode)
             .decoder(PacketSyncController::new)
             .consumerMainThread(PacketSyncController::handle)
+            .add();
+        INSTANCE.messageBuilder(PacketRemoveNode.class,3, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketRemoveNode::encode)
+            .decoder(PacketRemoveNode::new)
+            .consumerMainThread(PacketRemoveNode::handle)
             .add();
     }
 

@@ -9,6 +9,8 @@ import net.minecraft.world.InteractionResult;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
+import org.zornco.energynodes.block.EnergyControllerBlock;
+import org.zornco.energynodes.block.IControllerNode;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -25,6 +27,12 @@ public class TestPadItem extends Item {
     public InteractionResult useOn(@Nonnull UseOnContext context) {
         BlockEntity tile = context.getLevel().getBlockEntity(context.getClickedPos());
         if (tile != null) {
+
+            if (tile instanceof IControllerNode node)
+            {
+
+                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT ":"SERVER ") + node.getGraph().getNodeGraph().toString());
+            }
             CompoundTag nbt = tile.saveWithFullMetadata();
             if (!context.getLevel().isClientSide) {
                 Utils.sendMessage(context.getPlayer(), nbt.toString());
