@@ -21,14 +21,15 @@ public class EnergyNodeProvider implements IProbeInfoProvider {
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
         IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyNodeTile tile = (EnergyNodeTile) world.getBlockEntity(iProbeHitData.getPos());
-        if (tile != null && tile.controllerPos != null) {
-            v.horizontal(center)
+        if(world.getBlockEntity(iProbeHitData.getPos()) instanceof EnergyNodeTile tile) {
+            if (tile.controllerPos != null) {
+                v.horizontal(center)
                     .text(Component.translatable(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));
             /*if (blockState.get(PROP_INOUT) == Flow.OUT )
                 v.horizontal(center)
                         .text(new TranslationTextComponent(EnergyNodes.MOD_ID.concat(".connected_to")))
                         .text(new StringTextComponent(tile.connectedTiles.size() + ""));*/
+            }
         }
     }
 }

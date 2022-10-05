@@ -1,31 +1,23 @@
 package org.zornco.energynodes.block;
 
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.network.PacketDistributor;
-import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
-import org.zornco.energynodes.tile.EnergyControllerTile;
 import org.zornco.energynodes.tile.EnergyNodeTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
-import java.util.Objects;
 
 public class EnergyNodeBlock extends Block implements EntityBlock {
 
@@ -59,10 +51,10 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
 
     @Override
     public void onRemove(@Nonnull BlockState oldState, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean p_60519_) {
-        if(world.getBlockEntity(pos) instanceof EnergyNodeTile nodeTile) {
+        if(world.getBlockEntity(pos) instanceof INodeTile nodeTile) {
             WeakReference<Node> nodeRef = nodeTile.getNodeRef();
 
-            EnergyControllerTile controllerTile = nodeTile.energyStorage.getControllerTile();
+            IControllerNode controllerTile = nodeTile.getController();
             if(nodeRef != null) {
                 Node node = nodeRef.get();
                 if (node != null && controllerTile != null) {
@@ -70,6 +62,7 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
                         case IN -> controllerTile.getGraph().removeInput(node.pos());
                         case OUT -> controllerTile.getGraph().removeOutput(node.pos());
                     }
+
                     NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(controllerTile.getBlockPos())), new PacketRemoveNode(controllerTile, node.pos()));
                 }
             }

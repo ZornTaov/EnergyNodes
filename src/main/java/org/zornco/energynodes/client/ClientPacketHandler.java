@@ -71,6 +71,8 @@ public class ClientPacketHandler {
                 }
                 ((EnergyControllerTile) te).getGraph().removeInput(nodePos);
                 ((EnergyControllerTile) te).getGraph().removeOutput(nodePos);
+                if (world.isClientSide) ((EnergyControllerTile) te).rebuildRenderBounds();
+
             }
             ctx.setPacketHandled(true);
         });

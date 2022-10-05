@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.tiers.IControllerTier;
 
-import java.util.Collection;
 
 public interface IControllerNode {
     IControllerTier getTier();

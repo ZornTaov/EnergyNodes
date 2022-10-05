@@ -22,6 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.capability.NodeEnergyStorage;
+import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -103,35 +104,36 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
 
             matrixStack.translate(0.5F, 0.5, 0.5);
 
-            te.getGraph().getInputNodes().forEach(inputNode -> {
-                Vec3 inputPos = Vec3.atCenterOf(inputNode.pos()).subtract(vector3d);
+            for (Node inputNode : te.getGraph().getInputNodes()) {
+                Vec3 inputPos = Vec3.atLowerCornerOf(inputNode.pos().subtract(te.getBlockPos()));
 
-                float f = (float)inputPos.x;
-                float f1 = (float)inputPos.y;
-                float f2 = (float)inputPos.z;
+                float f = (float) inputPos.x;
+                float f1 = (float) inputPos.y;
+                float f2 = (float) inputPos.z;
                 float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
                 f /= f3;
                 f1 /= f3;
                 f2 /= f3;
-                lines.vertex(matrixStack.last().pose(), 0,0,0).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+                lines.vertex(matrixStack.last().pose(), 0, 0, 0).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
                 lines.vertex(matrixStack.last().pose(), (float) inputPos.x, (float) inputPos.y, (float) inputPos.z).color(.2f, .5f, 1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-            });
-            te.getGraph().getOutputNodes().forEach(outputNode -> {
-                Vec3 outputPos = Vec3.atCenterOf(outputNode.pos()).subtract(vector3d);
+            }
+            for (Node outputNode : te.getGraph().getOutputNodes()) {
+                Vec3 outputPos = Vec3.atLowerCornerOf(outputNode.pos().subtract(te.getBlockPos()));
 
-                float f = (float)outputPos.x;
-                float f1 = (float)outputPos.y;
-                float f2 = (float)outputPos.z;
+                float f = (float) outputPos.x;
+                float f1 = (float) outputPos.y;
+                float f2 = (float) outputPos.z;
                 float f3 = Mth.sqrt(f * f + f1 * f1 + f2 * f2);
                 f /= f3;
                 f1 /= f3;
                 f2 /= f3;
-                lines.vertex(matrixStack.last().pose(),0,0,0).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
+                lines.vertex(matrixStack.last().pose(), 0, 0, 0).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
                 lines.vertex(matrixStack.last().pose(), (float) outputPos.x, (float) outputPos.y, (float) outputPos.z).color(1f, .5f, .1f, 0.5F).normal(matrixStack.last().normal(), f, f1, f2).endVertex();
-            });
-
-            AABB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
-            LevelRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
+            }
+            if(Minecraft.getInstance().player.isCrouching()) {
+                AABB bounds = te.getRenderBoundingBox().move(vector3d.reverse());
+                LevelRenderer.renderLineBox(matrixStack, buffer.getBuffer(RenderType.lines()), bounds.minX, bounds.minY, bounds.minZ, bounds.maxX, bounds.maxY, bounds.maxZ, 1F, 1F, 1F, 1F);
+            }
             matrixStack.popPose();
         }
 

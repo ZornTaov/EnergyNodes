@@ -1,42 +1,35 @@
 package org.zornco.energynodes.tile;
 
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.*;
-import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.server.TickTask;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
-import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.block.IControllerNode;
-import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
-import org.zornco.energynodes.nbt.NbtListCollector;
 import org.zornco.energynodes.particles.EnergyNodeParticleData;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnergyControllerTile extends BlockEntity implements IControllerNode {
 
@@ -71,14 +64,7 @@ public class EnergyControllerTile extends BlockEntity implements IControllerNode
     public void onLoad() {
         super.onLoad();
 
-        if (level != null)
-            if (!level.isClientSide) {
-
-            }
-            else
-            {
-                renderBounds = super.getRenderBoundingBox();
-            }
+        if (level != null && level.isClientSide) renderBounds = super.getRenderBoundingBox();
     }
 
     @Override
@@ -95,6 +81,9 @@ public class EnergyControllerTile extends BlockEntity implements IControllerNode
                 .orElse(Registration.BASE.get()));
         this.totalEnergyTransferredLastTick = this.totalEnergyTransferred;
         this.graph.deserializeNBT(tag.getCompound("graph"));
+
+        if (level != null && level.isClientSide) rebuildRenderBounds();
+
     }
 
     @Override
@@ -188,7 +177,7 @@ public class EnergyControllerTile extends BlockEntity implements IControllerNode
         //List<BlockPos> blockPos = getGraph().getNodeGraph().nodes().stream().map(Node::pos).toList();
 
         for (BlockPos nodePos : allNodes) {
-            AABB aabbNodePos = AABB.ofSize(Vec3.atCenterOf(getNodeFromController(nodePos)), 1, 1, 1);
+            AABB aabbNodePos = AABB.ofSize(Vec3.atCenterOf(nodePos), 1, 1, 1);
             renderBounds = getRenderBoundingBox().minmax(aabbNodePos);
         }
     }
@@ -208,8 +197,7 @@ public class EnergyControllerTile extends BlockEntity implements IControllerNode
         return tier;
     }
 
-    private BlockPos getNodeFromController(BlockPos nodePos)
-    {
-        return worldPosition.offset(nodePos);
+    public void setChanged() {
+        super.setChanged();
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.EnergyNodeTile;
 
 public class EnergyControllerProvider implements IProbeInfoProvider {
 
@@ -21,10 +22,11 @@ public class EnergyControllerProvider implements IProbeInfoProvider {
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
         IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        EnergyControllerTile tile = (EnergyControllerTile) world.getBlockEntity(iProbeHitData.getPos());
-        if (tile != null) {
-            v.horizontal(center)
+        if(world.getBlockEntity(iProbeHitData.getPos()) instanceof EnergyControllerTile tile) {
+
+                v.horizontal(center)
                     .text(Component.translatable(EnergyNodes.MOD_ID.concat(".top.transferred"), tile.transferredThisTick));
+
         }
     }
 }

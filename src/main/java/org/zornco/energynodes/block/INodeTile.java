@@ -1,5 +1,6 @@
 package org.zornco.energynodes.block;
 
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import org.zornco.energynodes.graph.Node;
 
@@ -14,5 +15,9 @@ public interface INodeTile {
 
     void connectController(IControllerNode controller);
 
+    IControllerNode getController();
+
     Capability<?> getCapabilityType();
+
+    BlockPos getBlockPos();
 }

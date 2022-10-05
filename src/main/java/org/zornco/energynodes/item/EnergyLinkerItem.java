@@ -8,19 +8,20 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
+import org.zornco.energynodes.block.INodeTile;
 import org.zornco.energynodes.block.NodeBlockTags;
-import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.block.IControllerNode;
+import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.graph.Node;
-import org.zornco.energynodes.tile.EnergyNodeTile;
+import org.zornco.energynodes.network.NetworkManager;
+import org.zornco.energynodes.network.packets.PacketRemoveNode;
 
 import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
@@ -37,93 +38,87 @@ public class EnergyLinkerItem extends Item {
     @Nonnull
     @Override
     public InteractionResult useOn(@Nonnull UseOnContext context) {
-        BlockPos blockpos = context.getClickedPos();
-        Level world = context.getLevel();
         ItemStack itemstack = context.getItemInHand();
-        BlockState blockState = world.getBlockState(blockpos);
-        CompoundTag compoundnbt = itemstack.hasTag() ? itemstack.getTag() : new CompoundTag();
-        if (compoundnbt != null) {
-            if (blockState.is(NodeBlockTags.NODE_TAG)) {
-                compoundnbt.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NbtUtils.writeBlockPos(blockpos));
-                Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
-                itemstack.setTag(compoundnbt);
-                return InteractionResult.SUCCESS;
+        CompoundTag compoundTag = itemstack.getOrCreateTag();
+        Level level = context.getLevel();
+        BlockPos blockpos = context.getClickedPos();
+        BlockState blockState = level.getBlockState(blockpos);
+        if (blockState.is(NodeBlockTags.NODE_TAG)) {
+            compoundTag.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NbtUtils.writeBlockPos(blockpos));
+            Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
+            itemstack.setTag(compoundTag);
+            return InteractionResult.SUCCESS;
 
-            } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundnbt.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
-                if(world.getBlockEntity(blockpos) instanceof IControllerNode controllerTile) {
-                    BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(compoundnbt.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
-                    EnergyNodeTile nodeTile = (EnergyNodeTile) world.getBlockEntity(nodePos);
-                    if (nodeTile == null) {
-                        Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
-                        return InteractionResult.PASS;
-                    }
-                    if (blockpos.distManhattan(nodePos) >= controllerTile.getTier().getMaxRange()) {
-                        Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.getTier().getMaxRange()));
-                        return InteractionResult.PASS;
-                    }
+        } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundTag.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
+            if(level.getBlockEntity(blockpos) instanceof IControllerNode controllerTile) {
+                BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+                INodeTile nodeTile = (INodeTile) level.getBlockEntity(nodePos);
 
-                    InteractionResult result = updateControllerPosList(context,
-                        controllerTile,
-                        nodeTile);
-                    if (result == InteractionResult.SUCCESS) {
-                        if (world.isClientSide)
-                            controllerTile.rebuildRenderBounds();
-                        compoundnbt.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
-                        itemstack.setTag(compoundnbt);
-                    }
-                    return result;
+                // check if node block is missing
+                if (nodeTile == null) {
+                    Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
+                    compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                    itemstack.setTag(compoundTag);
+                    return InteractionResult.PASS;
                 }
-            } else {
-                return super.useOn(context);
+
+                // check if node is out of range of controller
+                if (blockpos.distManhattan(nodePos) >= controllerTile.getTier().getMaxRange()) {
+                    Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.getTier().getMaxRange()));
+                    return InteractionResult.PASS;
+                }
+
+                InteractionResult result = tryToLink(context, controllerTile, nodeTile);
+
+                // on success, forget node position
+                if (result == InteractionResult.SUCCESS) {
+                    if (level.isClientSide)
+                        controllerTile.rebuildRenderBounds();
+                    compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                    itemstack.setTag(compoundTag);
+                }
+                return result;
             }
+        } else {
+            return super.useOn(context);
         }
         return InteractionResult.PASS;
     }
 
-    // TODO - Split and transform into link/unlink.
-    private static InteractionResult updateControllerPosList(@Nonnull UseOnContext context, IControllerNode controller, EnergyNodeTile nodeTile) {
-        final EnergyNodeBlock.Flow dir = nodeTile.getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
-        Direction hit = context.getClickedFace();
+    private InteractionResult tryToLink(UseOnContext context, IControllerNode controller, INodeTile node) {
+        ConnectionGraph graph = controller.getGraph();
 
-        BlockPos nodeFromController = nodeTile.getBlockPos().subtract(controller.getBlockPos());
-        WeakReference<Node> nodeRef = nodeTile.getNodeRef();
-        if (nodeRef != null) {
-            // unlink
-            Node node = nodeRef.get();
-            if(node == null) return InteractionResult.PASS;
-            switch (dir) {
-                case IN -> controller.getGraph().removeInput(node.pos());
-                case OUT -> controller.getGraph().removeOutput(node.pos());
-            }
-            nodeTile.clearConnection();
-            Utils.SendSystemMessage(context,Component.translatable(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(nodeFromController)));
-        } else {
-            // Link
-            if (controller.getGraph().getSize() >= controller.getTier().getMaxConnections()) {
-                Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.getTier().getMaxConnections()));
-                return InteractionResult.PASS;
-            }
-            var node = switch (dir) {
-                case IN -> controller.getGraph().addInput(nodeFromController);
-                case OUT -> controller.getGraph().addOutput(nodeFromController);
-            };
-            nodeTile.setNodeRef(node);
+        WeakReference<Node> nodeRef = node.getNodeRef();
 
-//            LazyOptional<?> storage = nodeTile.getCapability(nodeTile.getCapabilityType(), Direction.DOWN);
-//            storage.addListener(removed -> {
-//
-//                switch (dir) {
-//                    case IN -> controller.getGraph().removeInput(nodeFromController);
-//                    case OUT -> controller.getGraph().removeOutput(nodeFromController);
-//                }
-//
-//                controller.setChanged();
-//            });
-
-            nodeTile.connectController(controller);
-            Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.connected_to"), Utils.getCoordinatesAsString(nodeFromController)));
+        // node already linked, so disconnect it
+        if (nodeRef != null && nodeRef.get() != null && controller.equals(node.getController())) {
+            disconnectNode(node);
+            Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.disconnected"), Utils.getCoordinatesAsString(node.getBlockPos())));
+            return InteractionResult.SUCCESS;
         }
+
+        // new node, but controller has too many connections
+        if(graph.getSize() >= controller.getTier().getMaxConnections()) {
+            Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.too_many_connections"), controller.getTier().getMaxConnections()));
+            return InteractionResult.PASS;
+        }
+
+        // connect new node
+        connectNode(controller, node);
         return InteractionResult.SUCCESS;
     }
 
+    private void connectNode(IControllerNode controller, INodeTile node) {
+//        if (node.getController() != null && !node.getController().getBlockPos().equals( controller.getBlockPos()))
+//        {
+//            //remove old connection, then rebuild old controller
+//            disconnectNode(node);
+//        }
+        //make new connection
+        node.connectController(controller);
+    }
+
+    private void disconnectNode(INodeTile node) {
+        node.clearConnection();
+    }
 }

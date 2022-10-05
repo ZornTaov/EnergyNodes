@@ -5,11 +5,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.core.Direction;
-import net.minecraft.util.StringRepresentable;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
-import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nonnull;
@@ -22,7 +19,8 @@ public class Utils {
     public static final Codec<List<Direction>> DIRECTION_LIST_CODEC = Codec.list(DIRECTION_CODEC);
 
     public static void sendMessage(Player player, String text) {
-        ((ServerPlayer)player).sendSystemMessage(Component.literal(text), true);
+
+        ((ServerPlayer)player).sendSystemMessage(Component.literal(text), false);
     }
 
     public static void sendSystemMessage(Player player, String text) {
@@ -49,5 +47,15 @@ public class Utils {
                 (float) (pos.getX() - neighbor.getX()),
                 (float) (pos.getY() - neighbor.getY()),
                 (float) (pos.getZ() - neighbor.getZ()));
+    }
+
+    public static BlockPos getOffsetFromPos(BlockPos to, BlockPos from)
+    {
+        return !from.equals(to) ? to.subtract(from) : BlockPos.ZERO;
+    }
+
+    public static BlockPos getPosFromOffset(BlockPos to, BlockPos from)
+    {
+        return !from.equals(to) ? to.offset(from) : BlockPos.ZERO;
     }
 }

@@ -3,11 +3,11 @@ package org.zornco.energynodes.graph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.zornco.energynodes.EnergyNodes;
+import org.zornco.energynodes.block.EnergyNodeBlock;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -21,7 +21,7 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
 
     public ConnectionGraph(BlockPos controllerPos) {
         NodeGraph = ValueGraphBuilder.directed().build();
-        Node cNode = new Node(controllerPos.immutable(), Collections.emptyList());
+        Node cNode = new Node(controllerPos.immutable());
         NodeGraph.addNode(cNode);
         controllerNode = new WeakReference<>(cNode);
     }
@@ -63,6 +63,11 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
         }
     }
 
+    public WeakReference<Node> getController()
+    {
+        return controllerNode;
+    }
+
     public WeakReference<Node> getInput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
@@ -81,7 +86,7 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
     public WeakReference<Node> addInput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        Node node = new Node(pos, Collections.emptyList());
+        Node node = new Node(pos);
         NodeGraph.addNode(node);
         NodeGraph.putEdgeValue(node, cNode,new NodeConnection());
         return new WeakReference<>(node);
@@ -89,12 +94,16 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
     public WeakReference<Node> addOutput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        Node node = new Node(pos, Collections.emptyList());
+        Node node = new Node(pos);
         NodeGraph.addNode(node);
         NodeGraph.putEdgeValue(cNode, node,new NodeConnection());
         return new WeakReference<>(node);
     }
 
+    public void removeNode(Node node)
+    {
+        NodeGraph.removeNode(node);
+    }
     public void removeInput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
@@ -124,5 +133,19 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
 
     public MutableValueGraph<Node, NodeConnection> getNodeGraph() {
         return NodeGraph;
+    }
+
+    public WeakReference<Node> getNode(EnergyNodeBlock.Flow flowDir, BlockPos pos) {
+        return switch (flowDir) {
+            case OUT -> getOutput(pos);
+            case IN -> getInput(pos);
+        };
+    }
+
+    public WeakReference<Node> addNode(EnergyNodeBlock.Flow dir, BlockPos pos) {
+        return switch (dir) {
+            case OUT -> addOutput(pos);
+            case IN -> addInput(pos);
+        };
     }
 }

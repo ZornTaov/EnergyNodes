@@ -7,10 +7,9 @@ import net.minecraft.core.Direction;
 
 import java.util.List;
 
-public record Node(BlockPos pos, List<Direction> connections) {
+public record Node(BlockPos pos) {
     public static final Codec<Node> CODEC = RecordCodecBuilder.create(i -> i.group(
-            BlockPos.CODEC.fieldOf("pos").forGetter(Node::pos),
-            Direction.CODEC.listOf().fieldOf("connections").forGetter(Node::connections)
+            BlockPos.CODEC.fieldOf("pos").forGetter(Node::pos)
         ).apply(i,Node::new));
 
 
