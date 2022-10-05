@@ -20,8 +20,10 @@ public class BlockTagGenerator extends BlockTagsProvider {
     protected void addTags() {
 
         var blocks = Set.of(Registration.ENERGY_CONTROLLER_BLOCK.get(),
-            Registration.INPUT_NODE_BLOCK.get(),
-            Registration.OUTPUT_NODE_BLOCK.get());
+            Registration.INPUT_ENERGY_BLOCK.get(),
+            Registration.OUTPUT_ENERGY_BLOCK.get(),
+            Registration.INPUT_FLUID_BLOCK.get(),
+            Registration.OUTPUT_FLUID_BLOCK.get());
         var pickaxe = tag(BlockTags.MINEABLE_WITH_PICKAXE);
         var ironTool = tag(BlockTags.NEEDS_IRON_TOOL);
 
@@ -33,7 +35,9 @@ public class BlockTagGenerator extends BlockTagsProvider {
         var controller = tag(NodeBlockTags.CONTROLLER_TAG);
         var node = tag(NodeBlockTags.NODE_TAG);
         controller.add(Registration.ENERGY_CONTROLLER_BLOCK.get());
-        node.add(Registration.INPUT_NODE_BLOCK.get());
-        node.add(Registration.OUTPUT_NODE_BLOCK.get());
+        node.add(Registration.INPUT_ENERGY_BLOCK.get());
+        node.add(Registration.OUTPUT_ENERGY_BLOCK.get());
+        node.add(Registration.INPUT_FLUID_BLOCK.get());
+        node.add(Registration.OUTPUT_FLUID_BLOCK.get());
     }
 }

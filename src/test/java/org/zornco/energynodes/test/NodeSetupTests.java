@@ -11,7 +11,7 @@ package org.zornco.energynodes.test;
 //import org.zornco.energynodes.EnergyNodeConstants;
 //import org.zornco.energynodes.Registration;
 //import org.zornco.energynodes.tile.EnergyControllerTile;
-//import org.zornco.energynodes.tile.EnergyNodeTile;
+//import org.zornco.energynodes.tile.BaseNodeTile;
 //
 //@SuppressWarnings("unused")
 //@IntegrationTestClass("nodesetup")
@@ -19,8 +19,8 @@ package org.zornco.energynodes.test;
 //
 //    @IntegrationTest("basic")
 //    void nodesHaveCorrectTiles(IntegrationTestHelper testHelper) {
-//        testHelper.assertTileEntityAt(Vars.inNodePos, EnergyNodeTile.class, "Input Node Tile missing.");
-//        testHelper.assertTileEntityAt(Vars.outNodePos, EnergyNodeTile.class, "Output Node Tile missing.");
+//        testHelper.assertTileEntityAt(Vars.inNodePos, BaseNodeTile.class, "Input Node Tile missing.");
+//        testHelper.assertTileEntityAt(Vars.outNodePos, BaseNodeTile.class, "Output Node Tile missing.");
 //        testHelper.assertTileEntityAt(Vars.controllerPos, EnergyControllerTile.class, "Controller Tile missing.");
 //    }
 //
@@ -44,9 +44,9 @@ package org.zornco.energynodes.test;
 //    void stillLinked(IntegrationTestHelper testHelper) {
 //        EnergyControllerTile controller = (EnergyControllerTile) testHelper.getTileEntity(Vars.controllerPos);
 //        Assertions.assertNotNull(controller);
-//        EnergyNodeTile nodeIn = (EnergyNodeTile) testHelper.getTileEntity(Vars.inNodePos);
+//        BaseNodeTile nodeIn = (BaseNodeTile) testHelper.getTileEntity(Vars.inNodePos);
 //        Assertions.assertNotNull(nodeIn);
-//        EnergyNodeTile nodeOut = (EnergyNodeTile) testHelper.getTileEntity(Vars.outNodePos);
+//        BaseNodeTile nodeOut = (BaseNodeTile) testHelper.getTileEntity(Vars.outNodePos);
 //        Assertions.assertNotNull(nodeOut);
 //
 //        BlockPos inOffset = Vars.inNodePos.subtract(Vars.controllerPos);

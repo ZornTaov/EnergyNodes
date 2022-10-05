@@ -13,13 +13,15 @@ import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
-import org.zornco.energynodes.tile.EnergyNodeTile;
+import org.zornco.energynodes.tile.BaseNodeTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
-public class EnergyNodeBlock extends Block implements EntityBlock {
+public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements EntityBlock {
+
+    private final Class<T> tileType;
 
     public enum Flow implements StringRepresentable {
         OUT,
@@ -34,8 +36,9 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
 
     public static final EnumProperty<Flow> PROP_INOUT = EnumProperty.create("inout", Flow.class);
 
-    public EnergyNodeBlock(Properties properties, Flow flow) {
+    public BaseNodeBlock(Class<T> tileType, Properties properties, Flow flow) {
         super(properties);
+        this.tileType = tileType;
         this.registerDefaultState(this.stateDefinition.any().setValue(PROP_INOUT, flow));
     }
 
@@ -78,6 +81,10 @@ public class EnergyNodeBlock extends Block implements EntityBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(@Nonnull BlockPos pos, @Nonnull BlockState state) {
-        return new EnergyNodeTile(pos, state);
+        try {
+            return tileType.getDeclaredConstructor(BlockPos.class, BlockState.class).newInstance(pos, state);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

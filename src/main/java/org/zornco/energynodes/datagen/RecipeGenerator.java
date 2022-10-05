@@ -34,7 +34,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('S', Tags.Items.STONE)
                 .unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH))
                 .save(consumer);
-        ShapedRecipeBuilder.shaped(Registration.INPUT_NODE_ITEM.get(), 1)
+        ShapedRecipeBuilder.shaped(Registration.INPUT_ENERGY_ITEM.get(), 1)
                 .pattern("SSS")
                 .pattern("C s")
                 .pattern("SSS")
@@ -43,7 +43,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .define('s', Tags.Items.STRING)
                 .unlockedBy("has_redstone_torch", has(Blocks.REDSTONE_TORCH))
                 .save(consumer);
-        ShapedRecipeBuilder.shaped(Registration.OUTPUT_NODE_ITEM.get(), 1)
+        ShapedRecipeBuilder.shaped(Registration.OUTPUT_ENERGY_ITEM.get(), 1)
                 .pattern("SSS")
                 .pattern("s R")
                 .pattern("SSS")

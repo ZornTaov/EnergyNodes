@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.tile.EnergyControllerTile;
-import org.zornco.energynodes.tile.EnergyNodeTile;
 
 public class EnergyControllerProvider implements IProbeInfoProvider {
 

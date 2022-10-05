@@ -1,5 +1,6 @@
 package org.zornco.energynodes.tile;
 
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -9,17 +10,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
-import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
-import org.zornco.energynodes.block.EnergyNodeBlock;
+import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.block.IControllerNode;
 import org.zornco.energynodes.block.INodeTile;
-import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
@@ -30,9 +27,7 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
 
-public class EnergyNodeTile extends BlockEntity implements INodeTile {
-    public final NodeEnergyStorage energyStorage;
-    private final LazyOptional<NodeEnergyStorage> energy;
+public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     public final HashMap<Direction,BlockEntity> connectedTiles = new HashMap<>();
 
     @Nullable
@@ -42,10 +37,8 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
 
     private WeakReference<Node> nodeRef = null;
 
-    public EnergyNodeTile(@Nonnull BlockPos pos, @Nonnull BlockState state) {
-        super(Registration.ENERGY_TRANSFER_TILE.get(), pos, state);
-        this.energyStorage = new NodeEnergyStorage(this);
-        this.energy = LazyOptional.of(() -> this.energyStorage);
+    public BaseNodeTile(BlockEntityType<?> ent, @Nonnull BlockPos pos, @Nonnull BlockState state) {
+        super(ent, pos, state);
     }
 
     @Override
@@ -55,9 +48,9 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
         if (level != null) {
             if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
                 controller = cont;
-                final EnergyNodeBlock.Flow flowDir = getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
+                final BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
                 nodeRef = controller.getGraph().getNode(flowDir, this.worldPosition);
-                this.energyStorage.setController((EnergyControllerTile) controller);
+                //this.energyStorage.setController((EnergyControllerTile) controller);
             }
 
             for (Direction ctDir : connectedTiles.keySet()) {
@@ -78,7 +71,7 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
 //            EnergyControllerTile tile = energyStorage.getControllerTile();
 //            if (tile != null && tile == controller) {
 //
-//                EnergyNodeBlock.Flow flowDir = getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
+//                BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
 //                var node = tile.getGraph().getNode(flowDir, this.worldPosition);
 //
 //                if (node.get() != null)
@@ -129,29 +122,15 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
     }
 
 
-    @Nonnull
-    @Override
-    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, final @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ENERGY)
-            return energy.cast();
-
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        energy.invalidate();
-    }
-
+    @Nullable
     @Override
     public IControllerNode getController() {
-        return energyStorage.getControllerTile();
+        return controller;
     }
 
     @Override
     public Capability<?> getCapabilityType() {
-        return ForgeCapabilities.ENERGY;
+        return null;
     }
 
     @Override
@@ -175,13 +154,11 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
         this.nodeRef = null;
         this.controllerPos = null;
         this.controller = null;
-        this.energyStorage.setController(null);
-        this.energyStorage.setEnergyStored(0);
     }
 
     @Override
     public void connectController(IControllerNode inController) {
-        final EnergyNodeBlock.Flow dir = getBlockState().getValue(EnergyNodeBlock.PROP_INOUT);
+        final BaseNodeBlock.Flow dir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
         if (this.controller != null && this.controller != inController)
         {
             // unlink
@@ -196,8 +173,11 @@ public class EnergyNodeTile extends BlockEntity implements INodeTile {
 
         this.controllerPos = inController.getBlockPos();
         this.controller = inController;
-        this.energyStorage.setController((EnergyControllerTile) inController);
         this.nodeRef = this.controller.getGraph().addNode(dir, this.worldPosition);
         this.controller.rebuildRenderBounds();
+    }
+
+    public BaseNodeBlock.Flow getFlow() {
+        return getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
     }
 }

@@ -7,7 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraftforge.common.util.INBTSerializable;
 import org.zornco.energynodes.EnergyNodes;
-import org.zornco.energynodes.block.EnergyNodeBlock;
+import org.zornco.energynodes.block.BaseNodeBlock;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -135,14 +135,14 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
         return NodeGraph;
     }
 
-    public WeakReference<Node> getNode(EnergyNodeBlock.Flow flowDir, BlockPos pos) {
+    public WeakReference<Node> getNode(BaseNodeBlock.Flow flowDir, BlockPos pos) {
         return switch (flowDir) {
             case OUT -> getOutput(pos);
             case IN -> getInput(pos);
         };
     }
 
-    public WeakReference<Node> addNode(EnergyNodeBlock.Flow dir, BlockPos pos) {
+    public WeakReference<Node> addNode(BaseNodeBlock.Flow dir, BlockPos pos) {
         return switch (dir) {
             case OUT -> addOutput(pos);
             case IN -> addInput(pos);

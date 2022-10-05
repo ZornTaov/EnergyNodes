@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Utils;
-import org.zornco.energynodes.tile.EnergyNodeTile;
+import org.zornco.energynodes.tile.BaseNodeTile;
 
 public class EnergyNodeProvider implements IProbeInfoProvider {
     @Override
@@ -21,7 +21,7 @@ public class EnergyNodeProvider implements IProbeInfoProvider {
         ILayoutStyle center = info.defaultLayoutStyle()
                 .alignment(ElementAlignment.ALIGN_CENTER);
         IProbeInfo v = info.vertical(info.defaultLayoutStyle().spacing(-1));
-        if(world.getBlockEntity(iProbeHitData.getPos()) instanceof EnergyNodeTile tile) {
+        if(world.getBlockEntity(iProbeHitData.getPos()) instanceof BaseNodeTile tile) {
             if (tile.controllerPos != null) {
                 v.horizontal(center)
                     .text(Component.translatable(EnergyNodes.MOD_ID.concat(".top.connected_to"), Utils.getCoordinatesAsString(tile.controllerPos)));

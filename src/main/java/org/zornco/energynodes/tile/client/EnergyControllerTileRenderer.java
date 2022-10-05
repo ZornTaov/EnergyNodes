@@ -21,7 +21,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.block.EnergyControllerBlock;
-import org.zornco.energynodes.capability.NodeEnergyStorage;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.network.NetworkManager;

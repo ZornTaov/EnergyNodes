@@ -66,9 +66,9 @@ public class TestPadItem extends Item {
             if(i % length == 0 && spaceIndex > -1) {
                 stringBuilder.replace(spaceIndex+1, spaceIndex+1, "\n");
                 spaceIndex = -1;
-                i++;
+                //i++;
+                //if (i < comment.length()) break;
             }
-
             if(comment.charAt(i) == ',') {
                 spaceIndex = i;
             }

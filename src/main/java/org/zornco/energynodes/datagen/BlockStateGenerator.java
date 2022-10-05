@@ -24,9 +24,13 @@ public class BlockStateGenerator extends BlockStateProvider {
         );
         horizontalBlock(Registration.ENERGY_CONTROLLER_BLOCK.get(), controllerModel);
         simpleBlockItem(Registration.ENERGY_CONTROLLER_BLOCK.get(), controllerModel);
-        simpleBlock(Registration.INPUT_NODE_BLOCK.get());
-        simpleBlockItem(Registration.INPUT_NODE_BLOCK.get(),cubeAll(Registration.INPUT_NODE_BLOCK.get()));
-        simpleBlock(Registration.OUTPUT_NODE_BLOCK.get());
-        simpleBlockItem(Registration.OUTPUT_NODE_BLOCK.get(),cubeAll(Registration.OUTPUT_NODE_BLOCK.get()));
+        simpleBlock(Registration.INPUT_ENERGY_BLOCK.get());
+        simpleBlockItem(Registration.INPUT_ENERGY_BLOCK.get(),cubeAll(Registration.INPUT_ENERGY_BLOCK.get()));
+        simpleBlock(Registration.OUTPUT_ENERGY_BLOCK.get());
+        simpleBlockItem(Registration.OUTPUT_ENERGY_BLOCK.get(),cubeAll(Registration.OUTPUT_ENERGY_BLOCK.get()));
+        simpleBlock(Registration.INPUT_FLUID_BLOCK.get());
+        simpleBlockItem(Registration.INPUT_FLUID_BLOCK.get(),cubeAll(Registration.INPUT_FLUID_BLOCK.get()));
+        simpleBlock(Registration.OUTPUT_FLUID_BLOCK.get());
+        simpleBlockItem(Registration.OUTPUT_FLUID_BLOCK.get(),cubeAll(Registration.OUTPUT_FLUID_BLOCK.get()));
     }
 }

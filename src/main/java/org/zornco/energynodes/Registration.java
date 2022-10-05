@@ -18,8 +18,8 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.*;
+import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.block.EnergyControllerBlock;
-import org.zornco.energynodes.block.EnergyNodeBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.SageManifestItem;
 import org.zornco.energynodes.item.TestPadItem;
@@ -27,8 +27,9 @@ import org.zornco.energynodes.item.TierUpgradeItem;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
-import org.zornco.energynodes.tile.EnergyNodeTile;
-import org.zornco.energynodes.block.EnergyNodeBlock.Flow;
+import org.zornco.energynodes.block.BaseNodeBlock.Flow;
+import org.zornco.energynodes.tile.nodes.EnergyNodeTile;
+import org.zornco.energynodes.tile.nodes.FluidNodeTile;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -56,7 +57,6 @@ public class Registration {
     private static final BlockBehaviour.Properties baseProperty = Block.Properties
             .of(Material.METAL)
             .strength(3.0f, 128.0f);
-            //.harvestTool(ToolType.PICKAXE);
 
     // ================================================================================================================
     //    ITEMS
@@ -105,10 +105,14 @@ public class Registration {
     // ================================================================================================================
     public static final RegistryObject<EnergyControllerBlock> ENERGY_CONTROLLER_BLOCK =
             BLOCKS.register("energy_controller", () -> new EnergyControllerBlock(baseProperty));
-    public static final RegistryObject<EnergyNodeBlock> INPUT_NODE_BLOCK =
-            BLOCKS.register("input_node", () -> new EnergyNodeBlock(baseProperty, Flow.IN));
-    public static final RegistryObject<EnergyNodeBlock> OUTPUT_NODE_BLOCK =
-            BLOCKS.register("output_node", () -> new EnergyNodeBlock(baseProperty, Flow.OUT));
+    public static final RegistryObject<BaseNodeBlock<EnergyNodeTile>> INPUT_ENERGY_BLOCK =
+        BLOCKS.register("input_energy", () -> new BaseNodeBlock<>(EnergyNodeTile.class,baseProperty, Flow.IN));
+    public static final RegistryObject<BaseNodeBlock<EnergyNodeTile>> OUTPUT_ENERGY_BLOCK =
+        BLOCKS.register("output_energy", () -> new BaseNodeBlock<>(EnergyNodeTile.class,baseProperty, Flow.OUT));
+    public static final RegistryObject<BaseNodeBlock<FluidNodeTile>> INPUT_FLUID_BLOCK =
+        BLOCKS.register("input_fluid", () -> new BaseNodeBlock<>(FluidNodeTile.class,baseProperty, Flow.IN));
+    public static final RegistryObject<BaseNodeBlock<FluidNodeTile>> OUTPUT_FLUID_BLOCK =
+        BLOCKS.register("output_fluid", () -> new BaseNodeBlock<>(FluidNodeTile.class,baseProperty, Flow.OUT));
 
     // ================================================================================================================
     //    ITEM BLOCKS
@@ -120,17 +124,29 @@ public class Registration {
                             new Item.Properties().tab(Registration.ITEM_GROUP))
             );
     @SuppressWarnings("unused")
-    public static final RegistryObject<Item> INPUT_NODE_ITEM =
-            ITEMS.register("input_node", () ->
-                    new BlockItem(INPUT_NODE_BLOCK.get(),
-                            new Item.Properties().tab(Registration.ITEM_GROUP))
-            );
+    public static final RegistryObject<Item> INPUT_ENERGY_ITEM =
+        ITEMS.register("input_energy", () ->
+            new BlockItem(INPUT_ENERGY_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
     @SuppressWarnings("unused")
-    public static final RegistryObject<Item> OUTPUT_NODE_ITEM =
-            ITEMS.register("output_node", () ->
-                    new BlockItem(OUTPUT_NODE_BLOCK.get(),
-                            new Item.Properties().tab(Registration.ITEM_GROUP))
-            );
+    public static final RegistryObject<Item> OUTPUT_ENERGY_ITEM =
+        ITEMS.register("output_energy", () ->
+            new BlockItem(OUTPUT_ENERGY_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
+    @SuppressWarnings("unused")
+    public static final RegistryObject<Item> INPUT_FLUID_ITEM =
+        ITEMS.register("input_fluid", () ->
+            new BlockItem(INPUT_FLUID_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
+    @SuppressWarnings("unused")
+    public static final RegistryObject<Item> OUTPUT_FLUID_ITEM =
+        ITEMS.register("output_fluid", () ->
+            new BlockItem(OUTPUT_FLUID_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
 
     // ================================================================================================================
     //    TILE ENTITIES
@@ -142,9 +158,14 @@ public class Registration {
                     ).build(null));
     @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<BlockEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
-            TILES.register("energy_transfer", () ->
-                    BlockEntityType.Builder.of(EnergyNodeTile::new, INPUT_NODE_BLOCK.get(), OUTPUT_NODE_BLOCK.get()
-                    ).build(null));
+        TILES.register("energy_transfer", () ->
+            BlockEntityType.Builder.of(EnergyNodeTile::new, INPUT_ENERGY_BLOCK.get(), OUTPUT_ENERGY_BLOCK.get()
+            ).build(null));
+    @SuppressWarnings("ConstantConditions")
+    public static final RegistryObject<BlockEntityType<FluidNodeTile>> FLUID_TRANSFER_TILE =
+        TILES.register("fluid_transfer", () ->
+            BlockEntityType.Builder.of(FluidNodeTile::new, INPUT_FLUID_BLOCK.get(), OUTPUT_FLUID_BLOCK.get()
+            ).build(null));
 
     // ================================================================================================================
     //    CAPABILITIES
