@@ -13,7 +13,7 @@ import org.zornco.energynodes.item.EnergyLinkerItem;
 
 import javax.annotation.Nonnull;
 
-import static org.zornco.energynodes.tile.client.EnergyControllerTileRenderer.LineTypes.THICCCCC_LINES;
+import static org.zornco.energynodes.tile.client.BaseControllerTileRenderer.LineTypes.THICCCCC_LINES;
 
 public class EnergyNodeParticle extends Particle {
     private final Vec3 sourcePos;

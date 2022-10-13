@@ -32,7 +32,7 @@ import java.util.List;
 
 public abstract class BaseControllerTile extends BlockEntity implements IControllerTile {
     protected final ConnectionGraph graph;
-    protected int ticks = 0;
+    public int ticks = 0;
     protected IControllerTier tier;
     protected LazyOptional<IControllerTier> tierLO;
     private AABB renderBounds;
