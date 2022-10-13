@@ -19,6 +19,7 @@ import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
+import org.zornco.energynodes.network.packets.PacketSyncNodeData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -45,18 +46,20 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
         super.onLoad();
 
         if (level != null) {
-//            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerTile cont) {
+            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerTile cont) {
+                this.connectController(cont);
 //                controller = cont;
 //                final BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
 //                nodeRef = controller.getGraph().getNode(flowDir, this.worldPosition);
-//                //this.energyStorage.setController((EnergyControllerTile) controller);
-//                NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new PacketSyncNodeData(controllerPos, this.worldPosition));
-//
-//            }
-//            if (controllerPos != null && nodeRef == null)
-//            {
-//                EnergyNodes.LOGGER.fatal("Node didn't get their ref set?!");
-//            }
+                //this.energyStorage.setController((EnergyControllerTile) controller);
+                NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() ->
+                    level.getChunkAt(controllerPos)), new PacketSyncNodeData(controllerPos, this.worldPosition));
+
+            }
+            if (controllerPos != null && nodeRef == null)
+            {
+                EnergyNodes.LOGGER.fatal("Node didn't get their ref set?!");
+            }
             for (Direction ctDir : connectedTiles.keySet()) {
                 if (level.isLoaded(worldPosition.relative(ctDir))) {
                     BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
@@ -155,6 +158,13 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
 
     @Override
     public WeakReference<Node> getNodeRef() {
+        if (nodeRef == null || nodeRef.get() == null) {
+            IControllerTile cont = getController();
+            if (cont != null) {
+                final BaseNodeBlock.Flow dir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
+                setNodeRef(cont.getGraph().getNode(dir, this.worldPosition));
+            }
+        }
         return nodeRef;
     }
 

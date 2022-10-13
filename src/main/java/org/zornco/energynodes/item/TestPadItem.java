@@ -38,11 +38,12 @@ public class TestPadItem extends Item {
             if (tile instanceof BaseNodeTile nodeTile)
             {
                 WeakReference<Node> nodeRef = nodeTile.getNodeRef();
-                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT: ":"SERVER: ") +
-                    //" controllerPos " + nodeTile.controllerPos +
-                    //" nodeRef.pos " + ((nodeRef != null && nodeRef.get() != null ) ? nodeRef.get().pos().toString() : "null") +
-                    //" hasController " + (nodeTile.getController() != null));
-                    " connectedTiles " + nodeTile.connectedTiles.toString()
+                //noinspection ConstantConditions
+                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT: ":"SERVER: ")
+                    + " controllerPos " + nodeTile.controllerPos
+                    + " nodeRef.pos " + ((nodeRef != null && nodeRef.get() != null ) ? nodeRef.get().pos().toString() : "null")
+                    + " hasController " + (nodeTile.getController() != null)
+                    + " connectedTiles " + nodeTile.connectedTiles.toString()
                 );
 
             }

@@ -50,28 +50,30 @@ public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements Enti
     @Override
     public void onPlace(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos,
                         @Nonnull BlockState oldState, boolean isMoving) {
-        for (Direction facing : Direction.values()) {
-            BlockPos neighbor = pos.relative(facing);
-            connectToStorage(world, pos, state.getValue(PROP_INOUT), facing, neighbor);
-        }
+//        for (Direction facing : Direction.values()) {
+//            BlockPos neighbor = pos.relative(facing);
+//            connectToStorage(world, pos, facing, neighbor);
+//        }
     }
 
     @Override
     public void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos,
                                 @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
         Direction facing = Utils.getFacingFromBlockPos(neighbor, pos);
-        connectToStorage(world, pos, state.getValue(PROP_INOUT), facing, neighbor);
+        connectToStorage(world, pos, facing, neighbor);
     }
 
-    public static void connectToStorage(@Nonnull Level world, @Nonnull BlockPos pos, Flow dir,
+    public static void connectToStorage(@Nonnull Level level, @Nonnull BlockPos pos,
                                         Direction facing, BlockPos neighbor) {
-        BaseNodeTile nodeTile = (BaseNodeTile) world.getBlockEntity(pos);
-        if (nodeTile != null) {
-            BlockEntity otherTile = world.getBlockEntity(neighbor);
+        if (level.getBlockEntity(pos) instanceof BaseNodeTile nodeTile) {
+            BlockEntity otherTile = level.getBlockEntity(neighbor);
             if (otherTile != null && !(otherTile instanceof BaseNodeTile)) {
                 LazyOptional<?> adjacentStorageOptional = otherTile.getCapability(nodeTile.getCapabilityType(), facing.getOpposite());
-                if (nodeTile.canReceive(adjacentStorageOptional) && dir == Flow.OUT ||
-                    nodeTile.canExtract(adjacentStorageOptional) && dir == Flow.IN) {
+//                boolean canConnect = switch (dir) {
+//                    case IN -> nodeTile.canExtract(adjacentStorageOptional);
+//                    case OUT -> nodeTile.canReceive(adjacentStorageOptional);
+//                };
+                if (adjacentStorageOptional.isPresent()) {
                     nodeTile.connectedTiles.put(facing, otherTile);
                 }
             }
