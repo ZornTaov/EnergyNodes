@@ -20,7 +20,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.zornco.energynodes.EnergyNodes;
-import org.zornco.energynodes.block.EnergyControllerBlock;
+import org.zornco.energynodes.block.BaseControllerBlock;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.network.NetworkManager;
@@ -73,7 +73,7 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
         matrixStack.pushPose();
         int scale = 1;
         matrixStack.translate(0.5F, 0.5, 0.5);
-        Direction orientation = te.getBlockState().getValue(EnergyControllerBlock.PROP_FACING);
+        Direction orientation = te.getBlockState().getValue(BaseControllerBlock.PROP_FACING);
         matrixStack.mulPose(new Quaternion(new Vector3f(0, 1, 0), -getHudAngle(orientation), true));
 
         matrixStack.translate(0.0F, 0.0, 0.5325);

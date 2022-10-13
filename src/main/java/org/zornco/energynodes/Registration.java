@@ -18,6 +18,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.*;
+import org.zornco.energynodes.block.BaseControllerBlock;
 import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
