@@ -16,8 +16,6 @@ import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.BaseNodeBlock;
-import org.zornco.energynodes.block.IControllerNode;
-import org.zornco.energynodes.block.INodeTile;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
@@ -32,7 +30,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     public final HashMap<Direction,BlockEntity> connectedTiles = new HashMap<>();
 
     @Nullable
-    public IControllerNode controller;
+    public IControllerTile controller;
     @Nullable
     public BlockPos controllerPos;
 
@@ -47,7 +45,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
         super.onLoad();
 
         if (level != null) {
-//            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
+//            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerTile cont) {
 //                controller = cont;
 //                final BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
 //                nodeRef = controller.getGraph().getNode(flowDir, this.worldPosition);
@@ -137,11 +135,11 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
 
     @Nullable
     @Override
-    public IControllerNode getController() {
+    public IControllerTile getController() {
         // "lazily" try to get the controller BE if we know the pos
         if (controllerPos != null && controller == null)
         {
-            if (level != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
+            if (level != null && level.getBlockEntity(controllerPos) instanceof IControllerTile cont) {
                 controller = cont;
             } else {
                 EnergyNodes.LOGGER.warn("Attempted to get Controller while level was null");
@@ -180,7 +178,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     }
 
     @Override
-    public void connectController(IControllerNode inController) {
+    public void connectController(IControllerTile inController) {
         final BaseNodeBlock.Flow dir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
         if (this.controller != null && this.controller != inController)
         {

@@ -18,7 +18,6 @@ import net.minecraftforge.registries.RegistryObject;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
-import org.zornco.energynodes.block.IControllerNode;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
@@ -31,7 +30,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnergyControllerTile extends BlockEntity implements IControllerNode {
+public class EnergyControllerTile extends BlockEntity implements IControllerTile {
 
     protected int ticks = 0;
     protected long totalEnergyTransferred = 0;

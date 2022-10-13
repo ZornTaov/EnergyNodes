@@ -7,10 +7,9 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import org.zornco.energynodes.Registration;
-import org.zornco.energynodes.block.IControllerNode;
+import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.capability.FluidNodeStorage;
 import org.zornco.energynodes.tile.BaseNodeTile;
-import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -53,7 +52,7 @@ public class FluidNodeTile extends BaseNodeTile {
     }
 
     @Override
-    public void connectController(IControllerNode inController) {
+    public void connectController(IControllerTile inController) {
         super.connectController(inController);
         this.fluidStorage.setController(inController);
     }

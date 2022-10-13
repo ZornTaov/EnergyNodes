@@ -8,7 +8,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.Registration;
-import org.zornco.energynodes.block.IControllerNode;
+import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.capability.EnergyNodeStorage;
 import org.zornco.energynodes.tile.BaseNodeTile;
 import org.zornco.energynodes.tile.EnergyControllerTile;
@@ -54,7 +54,7 @@ public class EnergyNodeTile extends BaseNodeTile {
     }
 
     @Override
-    public void connectController(IControllerNode inController) {
+    public void connectController(IControllerTile inController) {
         super.connectController(inController);
         this.energyStorage.setController((EnergyControllerTile) inController);
     }

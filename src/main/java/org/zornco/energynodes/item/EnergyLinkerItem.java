@@ -10,18 +10,15 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
-import org.zornco.energynodes.block.INodeTile;
+import org.zornco.energynodes.tile.IControllerTile;
+import org.zornco.energynodes.tile.INodeTile;
 import org.zornco.energynodes.block.NodeBlockTags;
-import org.zornco.energynodes.block.IControllerNode;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.graph.Node;
-import org.zornco.energynodes.network.NetworkManager;
-import org.zornco.energynodes.network.packets.PacketRemoveNode;
 
 import javax.annotation.Nonnull;
 import java.lang.ref.WeakReference;
@@ -53,7 +50,7 @@ public class EnergyLinkerItem extends Item {
 
         } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundTag.contains(
                 EnergyNodeConstants.NBT_NODE_POS_KEY)) {
-            if(level.getBlockEntity(blockpos) instanceof IControllerNode controllerTile) {
+            if(level.getBlockEntity(blockpos) instanceof IControllerTile controllerTile) {
                 BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(
                     compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
                 INodeTile nodeTile = (INodeTile) level.getBlockEntity(nodePos);
@@ -93,7 +90,7 @@ public class EnergyLinkerItem extends Item {
         return InteractionResult.PASS;
     }
 
-    private InteractionResult tryToLink(UseOnContext context, IControllerNode controller, INodeTile node) {
+    private InteractionResult tryToLink(UseOnContext context, IControllerTile controller, INodeTile node) {
         ConnectionGraph graph = controller.getGraph();
 
         WeakReference<Node> nodeRef = node.getNodeRef();
@@ -116,7 +113,7 @@ public class EnergyLinkerItem extends Item {
         return InteractionResult.SUCCESS;
     }
 
-    private void connectNode(IControllerNode controller, INodeTile node) {
+    private void connectNode(IControllerTile controller, INodeTile node) {
 //        if (node.getController() != null && !node.getController().getBlockPos().equals( controller.getBlockPos()))
 //        {
 //            //remove old connection, then rebuild old controller

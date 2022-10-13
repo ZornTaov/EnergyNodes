@@ -3,7 +3,7 @@ package org.zornco.energynodes.network.packets;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
-import org.zornco.energynodes.block.IControllerNode;
+import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.client.ClientPacketHandler;
 
 import java.util.function.Supplier;
@@ -13,7 +13,7 @@ public class PacketRemoveNode {
     private final BlockPos pos;
     private final BlockPos node;
 
-    public PacketRemoveNode(IControllerNode te, BlockPos nodePos) {
+    public PacketRemoveNode(IControllerTile te, BlockPos nodePos) {
         this.node = nodePos;
         this.pos = te.getBlockPos();
     }

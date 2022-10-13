@@ -9,9 +9,7 @@ import net.minecraft.world.InteractionResult;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
-import org.zornco.energynodes.block.EnergyControllerBlock;
-import org.zornco.energynodes.block.IControllerNode;
-import org.zornco.energynodes.block.INodeTile;
+import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.tile.BaseNodeTile;
 
@@ -32,7 +30,7 @@ public class TestPadItem extends Item {
         BlockEntity tile = context.getLevel().getBlockEntity(context.getClickedPos());
         if (tile != null) {
 
-            if (tile instanceof IControllerNode node)
+            if (tile instanceof IControllerTile node)
             {
 
                 EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT ":"SERVER ") + node.getGraph().getNodeGraph().toString());

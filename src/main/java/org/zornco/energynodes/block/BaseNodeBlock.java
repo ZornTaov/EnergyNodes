@@ -17,6 +17,8 @@ import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
 import org.zornco.energynodes.tile.BaseNodeTile;
+import org.zornco.energynodes.tile.IControllerTile;
+import org.zornco.energynodes.tile.INodeTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -84,7 +86,7 @@ public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements Enti
         if(world.getBlockEntity(pos) instanceof INodeTile nodeTile) {
             WeakReference<Node> nodeRef = nodeTile.getNodeRef();
 
-            IControllerNode controllerTile = nodeTile.getController();
+            IControllerTile controllerTile = nodeTile.getController();
             if(nodeRef != null) {
                 Node node = nodeRef.get();
                 if (node != null && controllerTile != null) {

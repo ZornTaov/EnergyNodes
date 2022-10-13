@@ -1,9 +1,9 @@
-package org.zornco.energynodes.block;
+package org.zornco.energynodes.tile;
 
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
+import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.graph.Node;
 
 import java.lang.ref.WeakReference;
@@ -19,9 +19,9 @@ public interface INodeTile {
 
     void clearConnection();
 
-    void connectController(IControllerNode controller);
+    void connectController(IControllerTile controller);
 
-    IControllerNode getController();
+    IControllerTile getController();
 
     Capability<?> getCapabilityType();
 

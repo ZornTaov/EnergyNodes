@@ -1,11 +1,11 @@
-package org.zornco.energynodes.block;
+package org.zornco.energynodes.tile;
 
 import net.minecraft.core.BlockPos;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.tiers.IControllerTier;
 
 
-public interface IControllerNode {
+public interface IControllerTile {
     IControllerTier getTier();
 
     void rebuildRenderBounds();
