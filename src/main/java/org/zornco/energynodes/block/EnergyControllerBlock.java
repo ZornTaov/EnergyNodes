@@ -48,16 +48,10 @@ public class EnergyControllerBlock extends BaseEntityBlock {
         return RenderShape.MODEL;
     }
     private static Direction getFacingFromEntity(BlockPos clickedBlock, LivingEntity entity) {
-        Direction facing = Direction.getNearest(
+        return Direction.getNearest(
                 (float) (entity.getX() - clickedBlock.getX()),
-                (float) (entity.getY() - clickedBlock.getY()),
+                0,
                 (float) (entity.getZ() - clickedBlock.getZ()));
-
-        if (facing.getAxis() == Direction.Axis.Y) {
-            facing = Direction.NORTH;
-        }
-
-        return facing;
     }
 
     @Override
@@ -65,6 +59,7 @@ public class EnergyControllerBlock extends BaseEntityBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@Nonnull Level level, @Nonnull BlockState state, @Nonnull BlockEntityType<T> type) {
         return createTickerHelper(type, Registration.ENERGY_CONTROLLER_TILE.get(), EnergyControllerTile::tick);
     }
+    
     @Nullable
     @Override
     public BlockEntity newBlockEntity(@Nonnull BlockPos pos, @Nonnull BlockState state) {
