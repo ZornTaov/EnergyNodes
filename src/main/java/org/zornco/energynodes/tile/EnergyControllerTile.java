@@ -119,7 +119,8 @@ public class EnergyControllerTile extends BlockEntity implements IControllerTile
     public ConnectionGraph getGraph() {
         return graph;
     }
-
+    
+    @SuppressWarnings("unused")
     static public void tick(@Nonnull Level level, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nonnull BlockEntity tile) {
         EnergyControllerTile ECTile = (EnergyControllerTile) tile;
         if (!level.isClientSide) {
