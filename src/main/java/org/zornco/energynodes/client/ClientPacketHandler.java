@@ -6,6 +6,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.block.BaseNodeBlock;
+import org.zornco.energynodes.tile.BaseControllerTile;
 import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.BaseNodeTile;
@@ -38,7 +39,7 @@ public class ClientPacketHandler {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
                 //TODO EnergyControllerTile
-                if (world.getBlockEntity(pos) instanceof EnergyControllerTile controller) {
+                if (world.getBlockEntity(pos) instanceof BaseControllerTile controller) {
                     controller.setTier(tier);
                 }else {
                     EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is not a EnergyControllerTile!");

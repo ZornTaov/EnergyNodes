@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.BlockPos;
 import org.zornco.energynodes.Registration;
+import org.zornco.energynodes.tile.BaseControllerTile;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
@@ -21,7 +22,7 @@ public class EnergyControllerBlock extends BaseControllerBlock {
     @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@Nonnull Level level, @Nonnull BlockState state, @Nonnull BlockEntityType<T> type) {
-        return createTickerHelper(type, Registration.ENERGY_CONTROLLER_TILE.get(), EnergyControllerTile::tick);
+        return createTickerHelper(type, Registration.ENERGY_CONTROLLER_TILE.get(), BaseControllerTile::tickCommon);
     }
 
     @Nullable

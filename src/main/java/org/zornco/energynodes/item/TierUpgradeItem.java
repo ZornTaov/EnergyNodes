@@ -12,7 +12,7 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketSyncControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.BaseControllerTile;
 
 import javax.annotation.Nonnull;
 
@@ -41,7 +41,7 @@ public class TierUpgradeItem extends Item {
         if (!capability.isPresent()) {
             return InteractionResult.FAIL;
         }
-        if (!(tile instanceof EnergyControllerTile controller)) {
+        if (!(tile instanceof BaseControllerTile controller)) {
             return InteractionResult.FAIL;
         }
         if (controller.getTier().getLevel() >= this.tier.getLevel()) {

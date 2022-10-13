@@ -6,7 +6,7 @@ import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.client.ClientPacketHandler;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.BaseControllerTile;
 
 import java.util.function.Supplier;
 
@@ -15,7 +15,7 @@ public class PacketSyncControllerTier {
     private final BlockPos pos;
     private final IControllerTier tier;
 
-    public PacketSyncControllerTier(EnergyControllerTile te) {
+    public PacketSyncControllerTier(BaseControllerTile te) {
         this.tier = te.getTier();
         this.pos = te.getBlockPos();
     }

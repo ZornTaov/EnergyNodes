@@ -24,12 +24,13 @@ import org.zornco.energynodes.block.BaseControllerBlock;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.network.NetworkManager;
+import org.zornco.energynodes.tile.BaseControllerTile;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
 import java.util.OptionalDouble;
 
-public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyControllerTile> {
+public class EnergyControllerTileRenderer implements BlockEntityRenderer<BaseControllerTile> {
     public EnergyControllerTileRenderer(BlockEntityRendererProvider.Context ctx) {
 
     }
@@ -152,7 +153,7 @@ public class EnergyControllerTileRenderer implements BlockEntityRenderer<EnergyC
     }
 
     @Override
-    public boolean shouldRenderOffScreen(@Nonnull EnergyControllerTile te) {
+    public boolean shouldRenderOffScreen(@Nonnull BaseControllerTile te) {
         return Minecraft.getInstance().player != null && Minecraft.getInstance().player.getMainHandItem().getItem() instanceof EnergyLinkerItem;
     }
 
