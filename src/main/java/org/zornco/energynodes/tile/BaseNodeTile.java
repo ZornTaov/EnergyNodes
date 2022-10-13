@@ -150,7 +150,8 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     public void clearConnection() {
         if (controllerPos != null && this.controller != null && level != null) {
             if (!level.isClientSide)
-                NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(this.controllerPos)), new PacketRemoveNode(controller, getBlockPos()));
+                NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(
+                    () -> level.getChunkAt(this.controllerPos)), new PacketRemoveNode(controller, getBlockPos()));
             this.controller.getGraph().removeNode(this.nodeRef.get());
             this.controller.rebuildRenderBounds();
 

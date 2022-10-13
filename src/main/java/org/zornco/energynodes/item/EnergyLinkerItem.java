@@ -45,18 +45,24 @@ public class EnergyLinkerItem extends Item {
         BlockState blockState = level.getBlockState(blockpos);
         if (blockState.is(NodeBlockTags.NODE_TAG)) {
             compoundTag.put(EnergyNodeConstants.NBT_NODE_POS_KEY, NbtUtils.writeBlockPos(blockpos));
-            Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.start_connection"), Utils.getCoordinatesAsString(blockpos)));
+            Utils.SendSystemMessage(context, Component.translatable(
+                EnergyNodes.MOD_ID.concat(".linker.start_connection"),
+                Utils.getCoordinatesAsString(blockpos)));
             itemstack.setTag(compoundTag);
             return InteractionResult.SUCCESS;
 
-        } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundTag.contains(EnergyNodeConstants.NBT_NODE_POS_KEY)) {
+        } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundTag.contains(
+                EnergyNodeConstants.NBT_NODE_POS_KEY)) {
             if(level.getBlockEntity(blockpos) instanceof IControllerNode controllerTile) {
-                BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+                BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(
+                    compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
                 INodeTile nodeTile = (INodeTile) level.getBlockEntity(nodePos);
 
                 // check if node block is missing
                 if (nodeTile == null) {
-                    Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_missing"), Utils.getCoordinatesAsString(nodePos)));
+                    Utils.SendSystemMessage(context, Component.translatable(
+                        EnergyNodes.MOD_ID.concat(".linker.node_missing"),
+                        Utils.getCoordinatesAsString(nodePos)));
                     compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
                     itemstack.setTag(compoundTag);
                     return InteractionResult.PASS;
@@ -64,7 +70,9 @@ public class EnergyLinkerItem extends Item {
 
                 // check if node is out of range of controller
                 if (blockpos.distManhattan(nodePos) >= controllerTile.getTier().getMaxRange()) {
-                    Utils.SendSystemMessage(context, Component.translatable(EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"), controllerTile.getTier().getMaxRange()));
+                    Utils.SendSystemMessage(context, Component.translatable(
+                        EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"),
+                        controllerTile.getTier().getMaxRange()));
                     return InteractionResult.PASS;
                 }
 

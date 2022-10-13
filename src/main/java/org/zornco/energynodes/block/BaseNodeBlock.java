@@ -66,7 +66,8 @@ public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements Enti
                         case OUT -> controllerTile.getGraph().removeOutput(node.pos());
                     }
 
-                    NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(controllerTile.getBlockPos())), new PacketRemoveNode(controllerTile, node.pos()));
+                    NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() ->
+                        world.getChunkAt(controllerTile.getBlockPos())), new PacketRemoveNode(controllerTile, node.pos()));
                 }
             }
         }

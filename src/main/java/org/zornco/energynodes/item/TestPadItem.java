@@ -39,7 +39,7 @@ public class TestPadItem extends Item {
             }
             if (Objects.requireNonNull(context.getPlayer()).isCrouching())
             {
-                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT ":"SERVER ") + nbt);
+                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT: ":"SERVER: ") + nbt);
             }
         }
 
