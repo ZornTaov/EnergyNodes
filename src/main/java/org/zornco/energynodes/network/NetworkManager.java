@@ -41,6 +41,11 @@ public class NetworkManager {
             .decoder(PacketRemoveNode::new)
             .consumerMainThread(PacketRemoveNode::handle)
             .add();
+        INSTANCE.messageBuilder(PacketSyncNodeData.class,4, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketSyncNodeData::encode)
+            .decoder(PacketSyncNodeData::new)
+            .consumerMainThread(PacketSyncNodeData::handle)
+            .add();
     }
 
     static long lastEnergyTransferredRequest = -1;
