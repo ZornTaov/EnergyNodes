@@ -6,6 +6,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.IEnergyStorage;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.block.IControllerNode;
 import org.zornco.energynodes.capability.EnergyNodeStorage;
@@ -56,5 +57,25 @@ public class EnergyNodeTile extends BaseNodeTile {
     public void connectController(IControllerNode inController) {
         super.connectController(inController);
         this.energyStorage.setController((EnergyControllerTile) inController);
+    }
+
+    public boolean canExtract(LazyOptional<?> adjacentStorageOptional) {
+        final boolean[] validCap = {false};
+        LazyOptional<IEnergyStorage> cap = adjacentStorageOptional.cast();
+        cap.ifPresent( cap2-> {
+            int i = cap2.extractEnergy(1, true);
+            validCap[0] = i > 0;
+        });
+        return validCap[0];
+    }
+
+    public boolean canReceive(LazyOptional<?> adjacentStorageOptional) {
+        final boolean[] validCap = {false};
+        LazyOptional<IEnergyStorage> cap = adjacentStorageOptional.cast();
+        cap.ifPresent( cap2-> {
+            int i = cap2.receiveEnergy(1, true);
+            validCap[0] = i > 0;
+        });
+        return validCap[0];
     }
 }

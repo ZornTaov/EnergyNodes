@@ -115,6 +115,10 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
         return saveWithoutMetadata();
     }
 
+    @Override
+    public void handleUpdateTag(CompoundTag tag) {
+        super.handleUpdateTag(tag);
+    }
 
     @Override
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -180,4 +184,15 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     public BaseNodeBlock.Flow getFlow() {
         return getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
     }
+
+    @Override
+    public boolean canExtract(LazyOptional<?> adjacentStorageOptional) {
+        return false;
+    }
+
+    @Override
+    public boolean canReceive(LazyOptional<?> adjacentStorageOptional) {
+        return false;
+    }
+
 }

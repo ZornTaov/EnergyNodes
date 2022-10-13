@@ -5,10 +5,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
-import org.zornco.energynodes.network.packets.PacketEnergyTransferredRequest;
-import org.zornco.energynodes.network.packets.PacketEnergyTransferredResponse;
-import org.zornco.energynodes.network.packets.PacketRemoveNode;
-import org.zornco.energynodes.network.packets.PacketSyncController;
+import org.zornco.energynodes.network.packets.*;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import java.util.Objects;
