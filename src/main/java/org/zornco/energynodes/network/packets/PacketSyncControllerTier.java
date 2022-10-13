@@ -10,25 +10,25 @@ import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import java.util.function.Supplier;
 
-public class PacketSyncController {
+public class PacketSyncControllerTier {
 
     private final BlockPos pos;
     private final IControllerTier tier;
 
-    public PacketSyncController(EnergyControllerTile te) {
+    public PacketSyncControllerTier(EnergyControllerTile te) {
         this.tier = te.getTier();
         this.pos = te.getBlockPos();
     }
-    public PacketSyncController(FriendlyByteBuf buf) {
+    public PacketSyncControllerTier(FriendlyByteBuf buf) {
         this.tier = ControllerTier.getTierFromString(buf.readUtf());
         this.pos = buf.readBlockPos();
     }
-    public static void encode(PacketSyncController msg, FriendlyByteBuf packetBuffer) {
+    public static void encode(PacketSyncControllerTier msg, FriendlyByteBuf packetBuffer) {
         packetBuffer.writeUtf(msg.tier.getSerializedName());
         packetBuffer.writeBlockPos(msg.pos);
     }
-    public static void handle(PacketSyncController msg, Supplier<NetworkEvent.Context> contextSupplier) {
-        ClientPacketHandler.handleSyncController(contextSupplier, msg.pos, msg.tier);
+    public static void handle(PacketSyncControllerTier msg, Supplier<NetworkEvent.Context> contextSupplier) {
+        ClientPacketHandler.handleSyncControllerTier(contextSupplier, msg.pos, msg.tier);
     }
 
 }

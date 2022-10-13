@@ -34,10 +34,10 @@ public class NetworkManager {
             .decoder(PacketEnergyTransferredResponse::new)
             .consumerMainThread(PacketEnergyTransferredResponse::handle)
             .add();
-        INSTANCE.messageBuilder(PacketSyncController.class,2, NetworkDirection.PLAY_TO_CLIENT)
-            .encoder(PacketSyncController::encode)
-            .decoder(PacketSyncController::new)
-            .consumerMainThread(PacketSyncController::handle)
+        INSTANCE.messageBuilder(PacketSyncControllerTier.class,2, NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketSyncControllerTier::encode)
+            .decoder(PacketSyncControllerTier::new)
+            .consumerMainThread(PacketSyncControllerTier::handle)
             .add();
         INSTANCE.messageBuilder(PacketRemoveNode.class,3, NetworkDirection.PLAY_TO_CLIENT)
             .encoder(PacketRemoveNode::encode)

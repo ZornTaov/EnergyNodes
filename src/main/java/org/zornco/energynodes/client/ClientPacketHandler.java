@@ -36,7 +36,7 @@ public class ClientPacketHandler {
         });
     }
 
-    public static void handleSyncController(@Nonnull Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, IControllerTier tier) {
+    public static void handleSyncControllerTier(@Nonnull Supplier<NetworkEvent.Context> contextSupplier, BlockPos pos, IControllerTier tier) {
         NetworkEvent.Context ctx = contextSupplier.get();
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;

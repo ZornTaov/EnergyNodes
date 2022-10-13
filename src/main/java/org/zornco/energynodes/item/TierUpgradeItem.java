@@ -10,7 +10,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.network.NetworkManager;
-import org.zornco.energynodes.network.packets.PacketSyncController;
+import org.zornco.energynodes.network.packets.PacketSyncControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.EnergyControllerTile;
 
@@ -50,7 +50,7 @@ public class TierUpgradeItem extends Item {
         controller.setTier(this.tier);
         capability.invalidate();
 
-        NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(context.getClickedPos())), new PacketSyncController(controller));
+        NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> world.getChunkAt(context.getClickedPos())), new PacketSyncControllerTier(controller));
         if (!player.isCreative()) {
             context.getItemInHand().shrink(1);
         }
