@@ -56,7 +56,7 @@ public class EnergyNodeTile extends BaseNodeTile {
     @Override
     public void connectController(IControllerTile inController) {
         super.connectController(inController);
-        this.energyStorage.setController((EnergyControllerTile) inController);
+        this.energyStorage.setController(inController);
     }
 
     public boolean canExtract(LazyOptional<?> adjacentStorageOptional) {
