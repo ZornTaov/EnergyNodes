@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
 
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
@@ -35,7 +36,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     @Nullable
     public BlockPos controllerPos;
 
-    private WeakReference<Node> nodeRef = null;
+    public WeakReference<Node> nodeRef = null;
 
     public BaseNodeTile(BlockEntityType<?> ent, @Nonnull BlockPos pos, @Nonnull BlockState state) {
         super(ent, pos, state);
@@ -46,13 +47,18 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
         super.onLoad();
 
         if (level != null) {
-            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
-                controller = cont;
-                final BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
-                nodeRef = controller.getGraph().getNode(flowDir, this.worldPosition);
-                //this.energyStorage.setController((EnergyControllerTile) controller);
-            }
-
+//            if (controllerPos != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
+//                controller = cont;
+//                final BaseNodeBlock.Flow flowDir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
+//                nodeRef = controller.getGraph().getNode(flowDir, this.worldPosition);
+//                //this.energyStorage.setController((EnergyControllerTile) controller);
+//                NetworkManager.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(worldPosition)), new PacketSyncNodeData(controllerPos, this.worldPosition));
+//
+//            }
+//            if (controllerPos != null && nodeRef == null)
+//            {
+//                EnergyNodes.LOGGER.fatal("Node didn't get their ref set?!");
+//            }
             for (Direction ctDir : connectedTiles.keySet()) {
                 if (level.isLoaded(worldPosition.relative(ctDir))) {
                     BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
@@ -64,7 +70,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
             for (Direction dir: Direction.values()) {
                 if (level.isLoaded(worldPosition.relative(dir)) && !connectedTiles.containsKey(dir)) {
                     BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(dir));
-                    if (blockEntity != null)
+                    if (blockEntity != null && !(blockEntity instanceof BaseNodeTile))
                         connectedTiles.put(dir, blockEntity);
                 }
             }
@@ -87,6 +93,9 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
 //                    clearConnection();
 //                }
 //            }
+        }
+        else {
+            EnergyNodes.LOGGER.warn("How is Level null??");
         }
     }
 
@@ -129,6 +138,15 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
     @Nullable
     @Override
     public IControllerNode getController() {
+        // "lazily" try to get the controller BE if we know the pos
+        if (controllerPos != null && controller == null)
+        {
+            if (level != null && level.getBlockEntity(controllerPos) instanceof IControllerNode cont) {
+                controller = cont;
+            } else {
+                EnergyNodes.LOGGER.warn("Attempted to get Controller while level was null");
+            }
+        }
         return controller;
     }
 

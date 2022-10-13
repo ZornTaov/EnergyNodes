@@ -1,5 +1,6 @@
 package org.zornco.energynodes.block;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -9,7 +10,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
+import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.network.packets.PacketRemoveNode;
@@ -43,17 +46,41 @@ public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements Enti
     }
 
     @Override
-    public void onPlace(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState oldState, boolean isMoving) {
-
+    public void onPlace(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos,
+                        @Nonnull BlockState oldState, boolean isMoving) {
+        for (Direction facing : Direction.values()) {
+            BlockPos neighbor = pos.relative(facing);
+            connectToStorage(world, pos, state.getValue(PROP_INOUT), facing, neighbor);
+        }
     }
 
     @Override
-    public void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
+    public void neighborChanged(@Nonnull BlockState state, @Nonnull Level world, @Nonnull BlockPos pos,
+                                @Nonnull Block changedBlock, @Nonnull BlockPos neighbor, boolean flags) {
+        Direction facing = Utils.getFacingFromBlockPos(neighbor, pos);
+        connectToStorage(world, pos, state.getValue(PROP_INOUT), facing, neighbor);
+    }
 
+    public static void connectToStorage(@Nonnull Level world, @Nonnull BlockPos pos, Flow dir,
+                                        Direction facing, BlockPos neighbor) {
+        BaseNodeTile nodeTile = (BaseNodeTile) world.getBlockEntity(pos);
+        if (nodeTile != null) {
+            BlockEntity otherTile = world.getBlockEntity(neighbor);
+            if (otherTile != null && !(otherTile instanceof BaseNodeTile)) {
+                LazyOptional<?> adjacentStorageOptional = otherTile.getCapability(nodeTile.getCapabilityType(), facing.getOpposite());
+                if (nodeTile.canReceive(adjacentStorageOptional) && dir == Flow.OUT ||
+                    nodeTile.canExtract(adjacentStorageOptional) && dir == Flow.IN) {
+                    nodeTile.connectedTiles.put(facing, otherTile);
+                }
+            }
+            else
+                nodeTile.connectedTiles.remove(facing);
+        }
     }
 
     @Override
-    public void onRemove(@Nonnull BlockState oldState, @Nonnull Level world, @Nonnull BlockPos pos, @Nonnull BlockState newState, boolean p_60519_) {
+    public void onRemove(@Nonnull BlockState oldState, @Nonnull Level world, @Nonnull BlockPos pos,
+                         @Nonnull BlockState newState, boolean p_60519_) {
         if(world.getBlockEntity(pos) instanceof INodeTile nodeTile) {
             WeakReference<Node> nodeRef = nodeTile.getNodeRef();
 

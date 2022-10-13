@@ -11,8 +11,12 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.Utils;
 import org.zornco.energynodes.block.EnergyControllerBlock;
 import org.zornco.energynodes.block.IControllerNode;
+import org.zornco.energynodes.block.INodeTile;
+import org.zornco.energynodes.graph.Node;
+import org.zornco.energynodes.tile.BaseNodeTile;
 
 import javax.annotation.Nonnull;
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 public class TestPadItem extends Item {
@@ -32,6 +36,17 @@ public class TestPadItem extends Item {
             {
 
                 EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT ":"SERVER ") + node.getGraph().getNodeGraph().toString());
+            }
+            if (tile instanceof BaseNodeTile nodeTile)
+            {
+                WeakReference<Node> nodeRef = nodeTile.getNodeRef();
+                EnergyNodes.LOGGER.info((context.getLevel().isClientSide()?"CLIENT: ":"SERVER: ") +
+                    //" controllerPos " + nodeTile.controllerPos +
+                    //" nodeRef.pos " + ((nodeRef != null && nodeRef.get() != null ) ? nodeRef.get().pos().toString() : "null") +
+                    //" hasController " + (nodeTile.getController() != null));
+                    " connectedTiles " + nodeTile.connectedTiles.toString()
+                );
+
             }
             CompoundTag nbt = tile.saveWithFullMetadata();
             if (!context.getLevel().isClientSide) {
