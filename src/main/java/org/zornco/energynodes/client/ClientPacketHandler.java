@@ -18,19 +18,13 @@ public class ClientPacketHandler {
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
-                BlockEntity te = world.getBlockEntity(pos);
-                if (te == null) {
-                    //EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is null!");
-                    //ctx.setPacketHandled(false);
-                    //throw new NullPointerException("ClientPacketHandler#handleTransferred: TileEntity is null!");
-                    return;
-                }
-                if (!(te instanceof EnergyControllerTile)) {
+                //TODO EnergyControllerTile
+                if (world.getBlockEntity(pos) instanceof EnergyControllerTile controller) {
+                    controller.transferredThisTick = transferredThisTick;
+                }else {
                     EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is not a EnergyControllerTile!");
-                    //ctx.setPacketHandled(false);
                     return;
                 }
-                ((EnergyControllerTile) te).transferredThisTick = transferredThisTick;
             }
             ctx.setPacketHandled(true);
         });
@@ -41,16 +35,13 @@ public class ClientPacketHandler {
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
-                BlockEntity te = world.getBlockEntity(pos);
-                if (te == null) {
-                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is null!");
-                    throw new NullPointerException("ClientPacketHandler#handleSyncController: TileEntity is null!");
-                }
-                if (!(te instanceof EnergyControllerTile)) {
+                //TODO EnergyControllerTile
+                if (world.getBlockEntity(pos) instanceof EnergyControllerTile controller) {
+                    controller.setTier(tier);
+                }else {
                     EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is not a EnergyControllerTile!");
                     return;
                 }
-                ((EnergyControllerTile) te).setTier(tier);
             }
             ctx.setPacketHandled(true);
         });
@@ -60,18 +51,15 @@ public class ClientPacketHandler {
         ctx.enqueueWork(() -> {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
-                BlockEntity te = world.getBlockEntity(pos);
-                if (te == null) {
-                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is null!");
-                    throw new NullPointerException("ClientPacketHandler#handleSyncController: TileEntity is null!");
+                if (world.getBlockEntity(pos) instanceof IControllerNode controller) {
+                    controller.getGraph().removeInput(nodePos);
+                    controller.getGraph().removeOutput(nodePos);
+                    if (world.isClientSide) controller.rebuildRenderBounds();
                 }
-                if (!(te instanceof EnergyControllerTile)) {
-                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncController: TileEntity is not a EnergyControllerTile!");
-                    return;
+                else {
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleRemoveNode: TileEntity is not a EnergyControllerTile!");
                 }
-                ((EnergyControllerTile) te).getGraph().removeInput(nodePos);
-                ((EnergyControllerTile) te).getGraph().removeOutput(nodePos);
-                if (world.isClientSide) ((EnergyControllerTile) te).rebuildRenderBounds();
+            }
 
             }
             ctx.setPacketHandled(true);
