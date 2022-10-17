@@ -28,6 +28,14 @@ public class BlockStateGenerator extends BlockStateProvider {
         simpleBlockItem(Registration.INPUT_ENERGY_BLOCK.get(),cubeAll(Registration.INPUT_ENERGY_BLOCK.get()));
         simpleBlock(Registration.OUTPUT_ENERGY_BLOCK.get());
         simpleBlockItem(Registration.OUTPUT_ENERGY_BLOCK.get(),cubeAll(Registration.OUTPUT_ENERGY_BLOCK.get()));
+
+        ModelFile fluidControllerModel = models().orientable(Objects.requireNonNull(Registration.FLUID_CONTROLLER_BLOCK.getId()).getPath(),
+            new ResourceLocation(EnergyNodes.MOD_ID, "block/fluid_controller_side"),
+            new ResourceLocation(EnergyNodes.MOD_ID, "block/fluid_controller_screen"),
+            new ResourceLocation(EnergyNodes.MOD_ID, "block/fluid_controller_side")
+        );
+        horizontalBlock(Registration.FLUID_CONTROLLER_BLOCK.get(), fluidControllerModel);
+        simpleBlockItem(Registration.FLUID_CONTROLLER_BLOCK.get(), fluidControllerModel);
         simpleBlock(Registration.INPUT_FLUID_BLOCK.get());
         simpleBlockItem(Registration.INPUT_FLUID_BLOCK.get(),cubeAll(Registration.INPUT_FLUID_BLOCK.get()));
         simpleBlock(Registration.OUTPUT_FLUID_BLOCK.get());

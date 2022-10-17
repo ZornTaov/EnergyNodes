@@ -18,17 +18,18 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.*;
-import org.zornco.energynodes.block.BaseControllerBlock;
 import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.block.EnergyControllerBlock;
+import org.zornco.energynodes.block.FluidControllerBlock;
 import org.zornco.energynodes.item.EnergyLinkerItem;
 import org.zornco.energynodes.item.SageManifestItem;
 import org.zornco.energynodes.item.TestPadItem;
 import org.zornco.energynodes.item.TierUpgradeItem;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 import org.zornco.energynodes.block.BaseNodeBlock.Flow;
+import org.zornco.energynodes.tile.controllers.FluidControllerTile;
 import org.zornco.energynodes.tile.nodes.EnergyNodeTile;
 import org.zornco.energynodes.tile.nodes.FluidNodeTile;
 
@@ -105,11 +106,13 @@ public class Registration {
     //    BLOCKS
     // ================================================================================================================
     public static final RegistryObject<EnergyControllerBlock> ENERGY_CONTROLLER_BLOCK =
-            BLOCKS.register("energy_controller", () -> new EnergyControllerBlock(baseProperty));
+        BLOCKS.register("energy_controller", () -> new EnergyControllerBlock(baseProperty));
     public static final RegistryObject<BaseNodeBlock<EnergyNodeTile>> INPUT_ENERGY_BLOCK =
         BLOCKS.register("input_energy", () -> new BaseNodeBlock<>(EnergyNodeTile.class,baseProperty, Flow.IN));
     public static final RegistryObject<BaseNodeBlock<EnergyNodeTile>> OUTPUT_ENERGY_BLOCK =
         BLOCKS.register("output_energy", () -> new BaseNodeBlock<>(EnergyNodeTile.class,baseProperty, Flow.OUT));
+    public static final RegistryObject<FluidControllerBlock> FLUID_CONTROLLER_BLOCK =
+        BLOCKS.register("fluid_controller", () -> new FluidControllerBlock(baseProperty));
     public static final RegistryObject<BaseNodeBlock<FluidNodeTile>> INPUT_FLUID_BLOCK =
         BLOCKS.register("input_fluid", () -> new BaseNodeBlock<>(FluidNodeTile.class,baseProperty, Flow.IN));
     public static final RegistryObject<BaseNodeBlock<FluidNodeTile>> OUTPUT_FLUID_BLOCK =
@@ -120,10 +123,10 @@ public class Registration {
     // ================================================================================================================
     @SuppressWarnings("unused")
     public static final RegistryObject<Item> ENERGY_CONTROLLER_ITEM =
-            ITEMS.register("energy_controller", () ->
-                    new BlockItem(ENERGY_CONTROLLER_BLOCK.get(),
-                            new Item.Properties().tab(Registration.ITEM_GROUP))
-            );
+        ITEMS.register("energy_controller", () ->
+            new BlockItem(ENERGY_CONTROLLER_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
     @SuppressWarnings("unused")
     public static final RegistryObject<Item> INPUT_ENERGY_ITEM =
         ITEMS.register("input_energy", () ->
@@ -134,6 +137,12 @@ public class Registration {
     public static final RegistryObject<Item> OUTPUT_ENERGY_ITEM =
         ITEMS.register("output_energy", () ->
             new BlockItem(OUTPUT_ENERGY_BLOCK.get(),
+                new Item.Properties().tab(Registration.ITEM_GROUP))
+        );
+    @SuppressWarnings("unused")
+    public static final RegistryObject<Item> FLUID_CONTROLLER_ITEM =
+        ITEMS.register("fluid_controller", () ->
+            new BlockItem(FLUID_CONTROLLER_BLOCK.get(),
                 new Item.Properties().tab(Registration.ITEM_GROUP))
         );
     @SuppressWarnings("unused")
@@ -154,13 +163,18 @@ public class Registration {
     // ================================================================================================================
     @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<BlockEntityType<EnergyControllerTile>> ENERGY_CONTROLLER_TILE =
-            TILES.register("energy_controller", () ->
-                    BlockEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
-                    ).build(null));
+        TILES.register("energy_controller", () ->
+            BlockEntityType.Builder.of(EnergyControllerTile::new, ENERGY_CONTROLLER_BLOCK.get()
+            ).build(null));
     @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<BlockEntityType<EnergyNodeTile>> ENERGY_TRANSFER_TILE =
         TILES.register("energy_transfer", () ->
             BlockEntityType.Builder.of(EnergyNodeTile::new, INPUT_ENERGY_BLOCK.get(), OUTPUT_ENERGY_BLOCK.get()
+            ).build(null));
+    @SuppressWarnings("ConstantConditions")
+    public static final RegistryObject<BlockEntityType<FluidControllerTile>> FLUID_CONTROLLER_TILE =
+        TILES.register("fluid_controller", () ->
+            BlockEntityType.Builder.of(FluidControllerTile::new, FLUID_CONTROLLER_BLOCK.get()
             ).build(null));
     @SuppressWarnings("ConstantConditions")
     public static final RegistryObject<BlockEntityType<FluidNodeTile>> FLUID_TRANSFER_TILE =

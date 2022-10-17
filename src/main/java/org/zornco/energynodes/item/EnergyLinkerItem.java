@@ -50,44 +50,47 @@ public class EnergyLinkerItem extends Item {
 
         } else if (blockState.is(NodeBlockTags.CONTROLLER_TAG) && compoundTag.contains(
                 EnergyNodeConstants.NBT_NODE_POS_KEY)) {
-            if(level.getBlockEntity(blockpos) instanceof IControllerTile controllerTile) {
-                BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(
-                    compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
-                INodeTile nodeTile = (INodeTile) level.getBlockEntity(nodePos);
-
-                // check if node block is missing
-                if (nodeTile == null) {
-                    Utils.SendSystemMessage(context, Component.translatable(
-                        EnergyNodes.MOD_ID.concat(".linker.node_missing"),
-                        Utils.getCoordinatesAsString(nodePos)));
-                    compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
-                    itemstack.setTag(compoundTag);
-                    return InteractionResult.PASS;
-                }
-
-                // check if node is out of range of controller
-                if (blockpos.distManhattan(nodePos) >= controllerTile.getTier().getMaxRange()) {
-                    Utils.SendSystemMessage(context, Component.translatable(
-                        EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"),
-                        controllerTile.getTier().getMaxRange()));
-                    return InteractionResult.PASS;
-                }
-
-                InteractionResult result = tryToLink(context, controllerTile, nodeTile);
-
-                // on success, forget node position
-                if (result == InteractionResult.SUCCESS) {
-                    if (level.isClientSide)
-                        controllerTile.rebuildRenderBounds();
-                    compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
-                    itemstack.setTag(compoundTag);
-                }
-                return result;
+            if (!(level.getBlockEntity(blockpos) instanceof IControllerTile controllerTile)) {
+                return InteractionResult.PASS;
             }
+            BlockPos nodePos = NbtUtils.readBlockPos((CompoundTag) Objects.requireNonNull(
+                compoundTag.get(EnergyNodeConstants.NBT_NODE_POS_KEY)));
+            if (!(level.getBlockEntity(nodePos) instanceof INodeTile nodeTile)) {
+                Utils.SendSystemMessage(context, Component.translatable(
+                    EnergyNodes.MOD_ID.concat(".linker.node_missing"),
+                    Utils.getCoordinatesAsString(nodePos)));
+                compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                itemstack.setTag(compoundTag);
+                return InteractionResult.PASS;
+            }
+
+            BlockState nodeState = level.getBlockState(nodePos);
+
+            if (!((blockState.is(NodeBlockTags.ENERGY_TAG) && nodeState.is(NodeBlockTags.ENERGY_TAG)) ||
+                (blockState.is(NodeBlockTags.FLUID_TAG) && nodeState.is(NodeBlockTags.FLUID_TAG))) )
+                return InteractionResult.PASS;
+
+            // check if node is out of range of controller
+            if (blockpos.distManhattan(nodePos) >= controllerTile.getTier().getMaxRange()) {
+                Utils.SendSystemMessage(context, Component.translatable(
+                    EnergyNodes.MOD_ID.concat(".linker.node_out_of_range"),
+                    controllerTile.getTier().getMaxRange()));
+                return InteractionResult.PASS;
+            }
+
+            InteractionResult result = tryToLink(context, controllerTile, nodeTile);
+
+            // on success, forget node position
+            if (result == InteractionResult.SUCCESS) {
+                if (level.isClientSide)
+                    controllerTile.rebuildRenderBounds();
+                compoundTag.remove(EnergyNodeConstants.NBT_NODE_POS_KEY);
+                itemstack.setTag(compoundTag);
+            }
+            return result;
         } else {
             return super.useOn(context);
         }
-        return InteractionResult.PASS;
     }
 
     private InteractionResult tryToLink(UseOnContext context, IControllerTile controller, INodeTile node) {

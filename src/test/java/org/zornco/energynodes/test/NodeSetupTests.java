@@ -10,7 +10,7 @@ package org.zornco.energynodes.test;
 //import org.junit.jupiter.api.Assertions;
 //import org.zornco.energynodes.EnergyNodeConstants;
 //import org.zornco.energynodes.Registration;
-//import org.zornco.energynodes.tile.EnergyControllerTile;
+//import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 //import org.zornco.energynodes.tile.BaseNodeTile;
 //
 //@SuppressWarnings("unused")

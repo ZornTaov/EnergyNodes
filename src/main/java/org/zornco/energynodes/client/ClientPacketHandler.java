@@ -10,7 +10,7 @@ import org.zornco.energynodes.tile.BaseControllerTile;
 import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.BaseNodeTile;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;

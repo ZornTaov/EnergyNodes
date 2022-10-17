@@ -21,6 +21,7 @@ public class LangGenerator extends LanguageProvider {
         add(ENERGY_CONTROLLER_BLOCK.get(), "Energy Controller"); // "block.energynodes.energy_controller"
         add(INPUT_ENERGY_BLOCK.get(), "Input Energy Node"); // "block.energynodes.input_node"
         add(OUTPUT_ENERGY_BLOCK.get(), "Output Energy Node"); // "block.energynodes.output_node"
+        add(FLUID_CONTROLLER_BLOCK.get(), "Fluid Controller"); // "block.energynodes.fluid_controller"
         add(INPUT_FLUID_BLOCK.get(), "Input Fluid Node"); // "block.energynodes.input_node"
         add(OUTPUT_FLUID_BLOCK.get(), "Output Fluid Node"); // "block.energynodes.output_node"
         addTer("base", "Base"); // "energynodes.ter.base"

@@ -14,6 +14,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.zornco.energynodes.particles.EnergyNodeParticle;
 import org.zornco.energynodes.particles.EnergyNodeParticleType;
 import org.zornco.energynodes.tile.client.EnergyControllerTileRenderer;
+import org.zornco.energynodes.tile.client.FluidControllerTileRenderer;
 
 @Mod.EventBusSubscriber(modid = EnergyNodes.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientRegistration {
@@ -39,5 +40,6 @@ public class ClientRegistration {
     public static void regRenderer(final EntityRenderersEvent.RegisterRenderers evt) {
 
         evt.registerBlockEntityRenderer(Registration.ENERGY_CONTROLLER_TILE.get(), EnergyControllerTileRenderer::new);
+        evt.registerBlockEntityRenderer(Registration.FLUID_CONTROLLER_TILE.get(), FluidControllerTileRenderer::new);
     }
 }

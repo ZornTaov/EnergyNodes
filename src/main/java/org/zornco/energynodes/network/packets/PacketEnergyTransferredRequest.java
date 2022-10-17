@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.NetworkManager;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 
 import java.util.Objects;
 import java.util.function.Supplier;

@@ -1,4 +1,4 @@
-package org.zornco.energynodes.tile;
+package org.zornco.energynodes.tile.controllers;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.Registration;
+import org.zornco.energynodes.tile.BaseControllerTile;
 
 import javax.annotation.Nonnull;
 

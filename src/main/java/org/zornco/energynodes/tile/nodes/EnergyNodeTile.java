@@ -11,7 +11,6 @@ import org.zornco.energynodes.Registration;
 import org.zornco.energynodes.tile.IControllerTile;
 import org.zornco.energynodes.capability.EnergyNodeStorage;
 import org.zornco.energynodes.tile.BaseNodeTile;
-import org.zornco.energynodes.tile.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

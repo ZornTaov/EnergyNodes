@@ -6,7 +6,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.packets.*;
-import org.zornco.energynodes.tile.EnergyControllerTile;
+import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 
 import java.util.Objects;
 
