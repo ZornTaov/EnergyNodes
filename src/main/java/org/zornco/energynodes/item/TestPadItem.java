@@ -43,7 +43,7 @@ public class TestPadItem extends Item {
                     + " controllerPos " + nodeTile.controllerPos
                     + " nodeRef.pos " + ((nodeRef != null && nodeRef.get() != null ) ? nodeRef.get().pos().toString() : "null")
                     + " hasController " + (nodeTile.getController() != null)
-                    + " connectedTiles " + nodeTile.connectedTiles.toString()
+                    //+ " connectedTiles " + nodeTile.connectedTiles.toString()
                 );
 
             }

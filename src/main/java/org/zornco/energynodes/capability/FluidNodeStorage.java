@@ -16,6 +16,7 @@ public class FluidNodeStorage extends BaseNodeStorage implements IFluidHandler {
     public FluidNodeStorage(@Nonnull BaseNodeTile tile) {
         super(tile);
     }
+
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
@@ -57,7 +58,7 @@ public class FluidNodeStorage extends BaseNodeStorage implements IFluidHandler {
     @Override
     public int fill(FluidStack resource, FluidAction action) {
         if (this.controllerTile != null && nodeTile.getFlow() == BaseNodeBlock.Flow.IN) {
-            //return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
+            return this.controllerTile.receiveInput(nodeTile, resource, action.simulate());
         }
         return 0;
 

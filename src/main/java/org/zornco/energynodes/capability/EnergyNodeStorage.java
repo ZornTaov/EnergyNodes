@@ -14,6 +14,7 @@ public class EnergyNodeStorage extends BaseNodeStorage implements IEnergyStorage
     public EnergyNodeStorage(@Nonnull BaseNodeTile tile) {
         super(tile);
     }
+
     @Override
     public CompoundTag serializeNBT() {
         CompoundTag tag = new CompoundTag();
@@ -27,26 +28,16 @@ public class EnergyNodeStorage extends BaseNodeStorage implements IEnergyStorage
     }
 
     @Override
-    public int receiveEnergy(int maxReceive, boolean simulate) {
-        if (this.getControllerTile() != null && getNodeTile().getFlow() == BaseNodeBlock.Flow.IN) {
-            //return this.controllerTile.receiveEnergy(nodeTile, maxReceive, simulate);
-        }
-        return 0;
-    }
-
-    @Override
     public int extractEnergy(int maxExtract, boolean simulate) {
         return 0;
     }
 
     @Override
-    public int getEnergyStored() {
-        return this.energy;
-    }
-
-    @Override
-    public int getMaxEnergyStored() {
-        return this.energy * 2 + 1;
+    public int receiveEnergy(int maxReceive, boolean simulate) {
+        if (this.getControllerTile() != null && getNodeTile().getFlow() == BaseNodeBlock.Flow.IN) {
+            return this.getControllerTile().receiveInput(nodeTile, maxReceive, simulate);
+        }
+        return 0;
     }
 
     @Override
@@ -57,9 +48,19 @@ public class EnergyNodeStorage extends BaseNodeStorage implements IEnergyStorage
     @Override
     public boolean canReceive() {
         if (this.getControllerTile() != null && getNodeTile().getFlow() == BaseNodeBlock.Flow.IN) {
-            //return this.controllerTile.canReceiveEnergy(nodeTile);
+            return this.getControllerTile().canReceiveInput(nodeTile);
         }
         return false;
+    }
+
+    @Override
+    public int getEnergyStored() {
+        return this.energy;
+    }
+
+    @Override
+    public int getMaxEnergyStored() {
+        return this.energy * 2 + 1;
     }
 
     public void setEnergyStored(int amountReceivedThisBlock) {

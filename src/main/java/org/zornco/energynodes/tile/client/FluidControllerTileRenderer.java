@@ -13,12 +13,19 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import org.zornco.energynodes.ClientUtils;
+import org.zornco.energynodes.graph.CapabilityNode;
+import org.zornco.energynodes.network.NetworkManager;
 import org.zornco.energynodes.tile.controllers.FluidControllerTile;
 
 import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 
 public class FluidControllerTileRenderer extends BaseControllerTileRenderer<FluidControllerTile> {
     public FluidControllerTileRenderer(BlockEntityRendererProvider.Context ctx) {
@@ -28,7 +35,7 @@ public class FluidControllerTileRenderer extends BaseControllerTileRenderer<Flui
     @Override
     @Nonnull
     public String getText(FluidControllerTile te) {
-//        NetworkManager.RequestEnergyTransferred(te, 20);
+        NetworkManager.RequestTransferred(te, 20);
         return te.transferredThisTick + "";
 //        return super.getText(te);
     }
@@ -37,7 +44,7 @@ public class FluidControllerTileRenderer extends BaseControllerTileRenderer<Flui
     public void renderAdditional(FluidControllerTile te, PoseStack matrixStack, MultiBufferSource buffer, Font fontrenderer, int overlay, int light) {
 
         //render fluid
-        FluidStack fluidStack = new FluidStack(Fluids.WATER, 1000);//te.fluidStack;
+        FluidStack fluidStack = te.fluidStack;
         if (fluidStack != null) {
             matrixStack.pushPose();
             IClientFluidTypeExtensions fluidTypeExtensions = IClientFluidTypeExtensions.of(fluidStack.getFluid());
@@ -88,5 +95,28 @@ public class FluidControllerTileRenderer extends BaseControllerTileRenderer<Flui
             matrixStack.last().pose(), buffer, false, 0, 140);
         matrixStack.popPose();
 
+    }
+
+    @Override
+    protected void renderDebugInfo(FluidControllerTile te, PoseStack matrixStack, MultiBufferSource buffer) {
+        matrixStack.pushPose();
+        matrixStack.translate(0.5F, 0.5, 0.5);
+
+        //I hate this
+        Predicate<IFluidHandler> storagePredicate = storage ->
+            (storage.isFluidValid(0, te.fluidStack) && storage.getFluidInTank(0).getAmount() != storage.getTankCapacity(0));
+
+        Set<IFluidHandler> optionals = te.getGraph().getAllOutputs(storagePredicate);
+//            .stream()
+//            .map(CapabilityNode::cap)
+//            .map(LazyOptional::<IFluidHandler>cast)
+//            .map(lo -> lo.orElseThrow(
+//                () -> new RuntimeException("Failed to get present adjacent storage for controller " + te.getBlockPos())))
+//            .filter(storagePredicate).toList();
+
+        long filteredOutputCount = optionals.size();
+        ClientUtils.renderDebugText(context, te.getBlockPos(), filteredOutputCount + "", matrixStack, buffer, 140);
+
+        matrixStack.popPose();
     }
 }

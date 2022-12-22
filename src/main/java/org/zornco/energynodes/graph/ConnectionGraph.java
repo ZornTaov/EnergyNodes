@@ -3,21 +3,27 @@ package org.zornco.energynodes.graph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraftforge.common.util.INBTSerializable;
+import net.minecraftforge.common.util.LazyOptional;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.block.BaseNodeBlock;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnstableApiUsage")
 public class ConnectionGraph implements INBTSerializable<CompoundTag> {
 
-    final MutableValueGraph<Node, NodeConnection> NodeGraph;
+    final MutableValueGraph<IGraphNode, INodeConnection> NodeGraph;
 
     final WeakReference<Node> controllerNode;
+
+    final HashMap<SidedPos, CapabilityNode> outputs = new HashMap<>();
 
     public ConnectionGraph(BlockPos controllerPos) {
         NodeGraph = ValueGraphBuilder.directed().build();
@@ -68,19 +74,23 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
         return controllerNode;
     }
 
-    public WeakReference<Node> getInput(BlockPos pos)
+    public Node getInput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        Node node = NodeGraph.predecessors(cNode).stream().filter(n -> n.pos().equals(pos))
+        Node node = NodeGraph.predecessors(cNode).stream()
+            .filter(n  -> (n instanceof Node no) && no.pos().equals(pos))
+            .map(Node.class::cast)
             .findFirst().orElse(null);
-        return new WeakReference<>(node);
+        return node;
     }
-    public WeakReference<Node> getOutput(BlockPos pos)
+    public Node getOutput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        Node node = NodeGraph.successors(cNode).stream().filter(n -> n.pos().equals(pos))
+        Node node = NodeGraph.successors(cNode).stream()
+            .filter(n  -> (n instanceof Node no) && no.pos().equals(pos))
+            .map(Node.class::cast)
             .findFirst().orElse(null);
-        return new WeakReference<>(node);
+        return node;
     }
 
     public WeakReference<Node> addInput(BlockPos pos)
@@ -107,35 +117,46 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
     public void removeInput(BlockPos pos)
     {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        NodeGraph.predecessors(cNode).stream().filter(n -> n.pos().equals(pos))
+        NodeGraph.predecessors(cNode).stream()
+            .filter(n  -> (n instanceof Node no) && no.pos().equals(pos))
+            .map(Node.class::cast)
             .findFirst().ifPresent(NodeGraph::removeNode);
     }
-    public void removeOutput(BlockPos pos)
-    {
+
+    public void removeOutput(BlockPos pos) {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        NodeGraph.successors(cNode).stream().filter(n -> n.pos().equals(pos))
-            .findFirst().ifPresent(NodeGraph::removeNode);
+
+        NodeGraph.successors(cNode).stream()
+            .filter(n -> (n instanceof Node no) && no.pos().equals(pos))
+            .findFirst().ifPresent(oN -> {
+               NodeGraph.successors(oN).stream().map(CapabilityNode.class::cast)
+                   .forEach(capNode -> {
+                       outputs.remove(capNode.sPos());
+                       NodeGraph.removeNode(capNode);
+                   });
+               NodeGraph.removeNode(oN);
+            });
     }
 
     public Set<Node> getInputNodes() {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        return NodeGraph.predecessors(cNode);
+        return NodeGraph.predecessors(cNode).stream().filter(Node.class::isInstance).map(Node.class::cast).collect(Collectors.toSet());
     }
 
     public Set<Node> getOutputNodes() {
         Node cNode = Objects.requireNonNull(controllerNode.get());
-        return NodeGraph.successors(cNode);
+        return NodeGraph.successors(cNode).stream().filter(Node.class::isInstance).map(Node.class::cast).collect(Collectors.toSet());
     }
 
     public int getSize() {
         return getInputNodes().size() + getOutputNodes().size();
     }
 
-    public MutableValueGraph<Node, NodeConnection> getNodeGraph() {
+    public MutableValueGraph<IGraphNode, INodeConnection> getNodeGraph() {
         return NodeGraph;
     }
 
-    public WeakReference<Node> getNode(BaseNodeBlock.Flow flowDir, BlockPos pos) {
+    public Node getNode(BaseNodeBlock.Flow flowDir, BlockPos pos) {
         return switch (flowDir) {
             case OUT -> getOutput(pos);
             case IN -> getInput(pos);
@@ -147,5 +168,34 @@ public class ConnectionGraph implements INBTSerializable<CompoundTag> {
             case OUT -> addOutput(pos);
             case IN -> addInput(pos);
         };
+    }
+
+    public void addOutputCap(BlockPos pos, Direction dir, LazyOptional<?> cap)
+    {
+        SidedPos sidedpos = new SidedPos(dir, pos);
+        CapabilityNode node = new CapabilityNode(cap, sidedpos);
+        outputs.putIfAbsent(sidedpos, node);
+        BlockPos outPos = pos.relative(dir);
+        Node output = getOutput(outPos);
+        NodeGraph.putEdgeValue(output, node, new CapConnection(dir));
+        cap.addListener(lo -> {
+            NodeGraph.removeNode(node);
+            outputs.remove(sidedpos);
+        });
+    }
+
+    public HashMap<SidedPos, CapabilityNode> getAllOutputs() {
+        return outputs;
+    }
+
+    public <T> Set<T> getAllOutputs(Predicate<T> storagePredicate) {
+        return outputs.values().stream()
+            .map(CapabilityNode::cap)
+            .map(LazyOptional::<T>cast)
+            .map(LazyOptional::resolve)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(storagePredicate)
+            .collect(Collectors.toSet());
     }
 }

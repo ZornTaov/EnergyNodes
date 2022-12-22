@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.tile.IControllerTile;
-import org.zornco.energynodes.client.ClientPacketHandler;
+import org.zornco.energynodes.network.client.ClientPacketHandler;
 
 import java.util.function.Supplier;
 

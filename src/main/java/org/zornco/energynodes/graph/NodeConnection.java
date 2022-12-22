@@ -1,4 +1,4 @@
 package org.zornco.energynodes.graph;
 
-public record NodeConnection() {
+public record NodeConnection() implements INodeConnection {
 }

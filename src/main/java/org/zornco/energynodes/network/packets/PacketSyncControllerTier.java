@@ -3,7 +3,7 @@ package org.zornco.energynodes.network.packets;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraftforge.network.NetworkEvent;
-import org.zornco.energynodes.client.ClientPacketHandler;
+import org.zornco.energynodes.network.client.ClientPacketHandler;
 import org.zornco.energynodes.tiers.ControllerTier;
 import org.zornco.energynodes.tiers.IControllerTier;
 import org.zornco.energynodes.tile.BaseControllerTile;

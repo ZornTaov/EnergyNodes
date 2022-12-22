@@ -34,6 +34,9 @@ public abstract class BaseNodeStorage implements INBTSerializable<CompoundTag> {
 
     @Nullable
     public IControllerTile getControllerTile() {
+        if (getNodeTile().getController()!=null) {
+            setController(getNodeTile().getController());
+        }
         return controllerTile;
     }
 }

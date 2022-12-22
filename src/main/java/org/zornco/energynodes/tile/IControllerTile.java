@@ -15,4 +15,8 @@ public interface IControllerTile {
     ConnectionGraph getGraph();
 
     void setChanged();
+
+    int receiveInput(BaseNodeTile nodeTile, Object maxReceive, boolean simulate);
+
+    boolean canReceiveInput(BaseNodeTile nodeTile);
 }

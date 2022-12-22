@@ -28,7 +28,7 @@ import java.util.HashMap;
 
 
 public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
-    public final HashMap<Direction,BlockEntity> connectedTiles = new HashMap<>();
+    //public final HashMap<Direction,BlockEntity> connectedTiles = new HashMap<>();
 
     @Nullable
     public IControllerTile controller;
@@ -60,21 +60,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
             {
                 EnergyNodes.LOGGER.fatal("Node didn't get their ref set?!");
             }
-            for (Direction ctDir : connectedTiles.keySet()) {
-                if (level.isLoaded(worldPosition.relative(ctDir))) {
-                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
-                    connectedTiles.replace(ctDir, blockEntity);
-                } else {
-                    connectedTiles.remove(ctDir);
-                }
-            }
-            for (Direction dir: Direction.values()) {
-                if (level.isLoaded(worldPosition.relative(dir)) && !connectedTiles.containsKey(dir)) {
-                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(dir));
-                    if (blockEntity != null && !(blockEntity instanceof BaseNodeTile))
-                        connectedTiles.put(dir, blockEntity);
-                }
-            }
+            //getConnectedTiles();
 //            EnergyControllerTile tile = energyStorage.getControllerTile();
 //            if (tile != null && tile == controller) {
 //
@@ -99,6 +85,27 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
             EnergyNodes.LOGGER.warn("How is Level null??");
         }
     }
+
+//    public HashMap<Direction, BlockEntity> getConnectedTiles() {
+//        if (level != null) {
+//            for (Direction ctDir : connectedTiles.keySet()) {
+//                if (level.isLoaded(worldPosition.relative(ctDir))) {
+//                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(ctDir));
+//                    connectedTiles.replace(ctDir, blockEntity);
+//                } else {
+//                    connectedTiles.remove(ctDir);
+//                }
+//            }
+//            for (Direction dir: Direction.values()) {
+//                if (level.isLoaded(worldPosition.relative(dir)) && !connectedTiles.containsKey(dir)) {
+//                    BlockEntity blockEntity = level.getBlockEntity(worldPosition.relative(dir));
+//                    if (blockEntity != null && !(blockEntity instanceof BaseNodeTile))
+//                        connectedTiles.put(dir, blockEntity);
+//                }
+//            }
+//        }
+//        return connectedTiles;
+//    }
 
 
     @Override
@@ -162,7 +169,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
             IControllerTile cont = getController();
             if (cont != null) {
                 final BaseNodeBlock.Flow dir = getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
-                setNodeRef(cont.getGraph().getNode(dir, this.worldPosition));
+                setNodeRef(new WeakReference<>(cont.getGraph().getNode(dir, this.worldPosition)));
             }
         }
         return nodeRef;
@@ -206,6 +213,12 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
         this.controller = inController;
         this.nodeRef = this.controller.getGraph().addNode(dir, this.worldPosition);
         this.controller.rebuildRenderBounds();
+        if (getLevel() != null) {
+            for (Direction facing : Direction.values()) {
+                BlockPos neighbor = getBlockPos().relative(facing);
+                BaseNodeBlock.connectToStorage(getLevel(), getBlockPos(), facing, neighbor);
+            }
+        }
     }
 
     public BaseNodeBlock.Flow getFlow() {
@@ -219,7 +232,7 @@ public abstract class BaseNodeTile extends BlockEntity implements INodeTile {
 
     @Override
     public boolean canReceive(LazyOptional<?> adjacentStorageOptional) {
-        return false;
+        return true;
     }
 
 }

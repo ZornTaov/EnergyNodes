@@ -65,20 +65,17 @@ public class BaseNodeBlock<T extends BaseNodeTile> extends Block implements Enti
 
     public static void connectToStorage(@Nonnull Level level, @Nonnull BlockPos pos,
                                         Direction facing, BlockPos neighbor) {
-        if (level.getBlockEntity(pos) instanceof BaseNodeTile nodeTile) {
+        if (level.getBlockEntity(pos) instanceof BaseNodeTile nodeTile && nodeTile.getFlow() == Flow.OUT && nodeTile.getController() != null) {
             BlockEntity otherTile = level.getBlockEntity(neighbor);
             if (otherTile != null && !(otherTile instanceof BaseNodeTile)) {
                 LazyOptional<?> adjacentStorageOptional = otherTile.getCapability(nodeTile.getCapabilityType(), facing.getOpposite());
-//                boolean canConnect = switch (dir) {
-//                    case IN -> nodeTile.canExtract(adjacentStorageOptional);
-//                    case OUT -> nodeTile.canReceive(adjacentStorageOptional);
-//                };
+
                 if (adjacentStorageOptional.isPresent()) {
-                    nodeTile.connectedTiles.put(facing, otherTile);
+                    nodeTile.getController().getGraph().addOutputCap(neighbor, facing.getOpposite(), adjacentStorageOptional);
                 }
             }
-            else
-                nodeTile.connectedTiles.remove(facing);
+            //else
+                //nodeTile.connectedTiles.remove(facing);
         }
     }
 

@@ -1,4 +1,4 @@
-package org.zornco.energynodes.client;
+package org.zornco.energynodes.network.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -13,6 +13,7 @@ import org.zornco.energynodes.tile.BaseNodeTile;
 import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
 
 import javax.annotation.Nonnull;
+import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 
 public class ClientPacketHandler {
@@ -22,10 +23,10 @@ public class ClientPacketHandler {
             Level world = Minecraft.getInstance().level;
             if (world != null) {
                 //TODO EnergyControllerTile
-                if (world.getBlockEntity(pos) instanceof EnergyControllerTile controller) {
+                if (world.getBlockEntity(pos) instanceof BaseControllerTile controller) {
                     controller.transferredThisTick = transferredThisTick;
                 }else {
-                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is not a EnergyControllerTile!");
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleTransferred: TileEntity is not a BaseControllerTile!");
                     return;
                 }
             }
@@ -60,7 +61,7 @@ public class ClientPacketHandler {
                     if (world.isClientSide) controller.rebuildRenderBounds();
                 }
                 else {
-                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleRemoveNode: TileEntity is not a EnergyControllerTile!");
+                    EnergyNodes.LOGGER.warn("ClientPacketHandler#handleRemoveNode: TileEntity is not a IControllerTile!");
                 }
             }
             ctx.setPacketHandled(true);
@@ -76,7 +77,7 @@ public class ClientPacketHandler {
                     if (world.getBlockEntity(controllerPos) instanceof IControllerTile controller) {
                         node.controller = controller;
                         final BaseNodeBlock.Flow flowDir = node.getBlockState().getValue(BaseNodeBlock.PROP_INOUT);
-                        node.setNodeRef(controller.getGraph().getNode(flowDir, nodePos));
+                        node.setNodeRef(new WeakReference<>(controller.getGraph().getNode(flowDir, nodePos)));
                     }
                     else {
                         EnergyNodes.LOGGER.warn("ClientPacketHandler#handleSyncNodeData: TileEntity is not a Controller Tile!");

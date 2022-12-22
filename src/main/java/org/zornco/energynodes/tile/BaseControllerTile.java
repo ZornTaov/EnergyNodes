@@ -16,8 +16,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.registries.RegistryObject;
+import org.jetbrains.annotations.NotNull;
 import org.zornco.energynodes.EnergyNodeConstants;
 import org.zornco.energynodes.Registration;
+import org.zornco.energynodes.block.BaseNodeBlock;
 import org.zornco.energynodes.graph.ConnectionGraph;
 import org.zornco.energynodes.graph.Node;
 import org.zornco.energynodes.item.EnergyLinkerItem;
@@ -27,12 +29,16 @@ import org.zornco.energynodes.tiers.IControllerTier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public abstract class BaseControllerTile extends BlockEntity implements IControllerTile {
     protected final ConnectionGraph graph;
     public int ticks = 0;
+    public HashMap<BlockPos, BaseNodeTile> cachedOutputs = new HashMap<>();
+    public long transferredThisTick;
+    public int lastTransferredRequest;
     protected IControllerTier tier;
     protected LazyOptional<IControllerTier> tierLO;
     private AABB renderBounds;
@@ -95,6 +101,7 @@ public abstract class BaseControllerTile extends BlockEntity implements IControl
     static public void tickCommon(@Nonnull Level level, @Nonnull BlockPos pos, @Nonnull BlockState state, @Nonnull BlockEntity tile) {
         BaseControllerTile BCTile = (BaseControllerTile) tile;
         BCTile.tickAdditional(level);
+        BCTile.updateCachedOutputs(level);
         if (level.isClientSide) {
             if (BCTile.ticks % 10 == 0) {
                 BCTile.spawnParticles();
@@ -171,7 +178,64 @@ public abstract class BaseControllerTile extends BlockEntity implements IControl
         return tier;
     }
 
-    public void setChanged() {
-        super.setChanged();
+    protected void updateCachedOutputs(@Nonnull Level level) {
+        if (ticks % 10 == 0) {
+            /*level.getBlockEntity( entry.getKey())*/
+            cachedOutputs.entrySet().stream().filter(entry -> entry.getValue() == null).forEach(entry -> cachedOutputs.remove(entry.getKey()));
+            List<Node> blockEntities = getGraph().getOutputNodes().stream().filter(nodePos -> !cachedOutputs.containsKey(nodePos.pos())).toList();
+            blockEntities.forEach(n -> cachedOutputs.put(n.pos(), (BaseNodeTile) level.getBlockEntity(n.pos())));
+
+            setChanged();
+        }
+    }
+
+    @Override
+    public int receiveInput(BaseNodeTile nodeTile, Object maxReceive, boolean simulate) {
+        return 0;
+    }
+
+//    @Nonnull
+//    public static List<HashMap<Direction, BlockEntity>> getValidDestinations(Stream<BaseNodeTile> values) {
+//        return values
+//            .filter(Objects::nonNull)
+//            .map(BaseNodeTile::getConnectedTiles)
+//            .filter(map -> !map.isEmpty())
+//            .toList();
+//    }
+//
+//    @Nonnull
+//    @SuppressWarnings("unchecked")
+//    public static <T> List<LazyOptional<T>> getOptionals(@NotNull Capability<T> cap, List<HashMap<Direction,
+//                                                     BlockEntity>> validDestinations, Predicate<T> storagePredicate) {
+//        List<LazyOptional<T>> result = new ArrayList<>();
+//        for (var entry : validDestinations) {
+//            for (var capMap: entry.entrySet()) {
+//                if (capMap.getValue() == null) continue;
+//                result.add(capMap.getValue().getCapability(cap, capMap.getKey().getOpposite()).cast());
+//            }
+//        }
+//        return result;
+//
+//
+////        return validDestinations.stream()
+////            .map(set -> set.entrySet().stream()
+////                .map(capMap -> {
+////                        if (capMap.getValue() != null) {
+////                            return capMap.getValue().getCapability(cap, capMap.getKey().getOpposite())
+////                                .map(storage -> ((T) storage))
+////                                .filter(storagePredicate);
+////                        } else return Optional.<T>empty();
+////                    }
+////                )
+////                .filter(Optional::isPresent)
+////                .toList())
+////            .toList().stream()
+////            .flatMap(List::stream)
+////            .toList();
+//    }
+
+    @Override
+    public boolean canReceiveInput(BaseNodeTile nodeTile) {
+        return getGraph().getNode(BaseNodeBlock.Flow.IN, nodeTile.getBlockPos()) != null;
     }
 }

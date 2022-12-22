@@ -13,7 +13,7 @@ import org.zornco.energynodes.item.EnergyLinkerItem;
 
 import javax.annotation.Nonnull;
 
-import static org.zornco.energynodes.tile.client.BaseControllerTileRenderer.LineTypes.THICCCCC_LINES;
+import org.zornco.energynodes.ClientUtils.LineTypes;
 
 public class EnergyNodeParticle extends Particle {
     private final Vec3 sourcePos;
@@ -41,7 +41,7 @@ public class EnergyNodeParticle extends Particle {
         matrixStack.translate(-vector3d.x(), -vector3d.y(), -vector3d.z());
 
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        VertexConsumer iVertexBuilder = bufferSource.getBuffer(THICCCCC_LINES);
+        VertexConsumer iVertexBuilder = bufferSource.getBuffer(LineTypes.THICCCCC_LINES);
 
         renderOctahedron(matrixStack, iVertexBuilder);
 

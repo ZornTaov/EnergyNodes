@@ -6,7 +6,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.packets.*;
-import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
+import org.zornco.energynodes.tile.BaseControllerTile;
 
 import java.util.Objects;
 
@@ -21,15 +21,15 @@ public class NetworkManager {
 
     public static void Register()
     {
-        INSTANCE.messageBuilder(PacketEnergyTransferredRequest.class,0, NetworkDirection.PLAY_TO_SERVER)
-            .encoder(PacketEnergyTransferredRequest::encode)
-            .decoder(PacketEnergyTransferredRequest::new)
-            .consumerMainThread(PacketEnergyTransferredRequest::handle)
+        INSTANCE.messageBuilder(PacketTransferredRequest.class,0, NetworkDirection.PLAY_TO_SERVER)
+            .encoder(PacketTransferredRequest::encode)
+            .decoder(PacketTransferredRequest::new)
+            .consumerMainThread(PacketTransferredRequest::handle)
             .add();
-        INSTANCE.messageBuilder(PacketEnergyTransferredResponse.class,1,NetworkDirection.PLAY_TO_CLIENT)
-            .encoder(PacketEnergyTransferredResponse::encode)
-            .decoder(PacketEnergyTransferredResponse::new)
-            .consumerMainThread(PacketEnergyTransferredResponse::handle)
+        INSTANCE.messageBuilder(PacketTransferredResponse.class,1,NetworkDirection.PLAY_TO_CLIENT)
+            .encoder(PacketTransferredResponse::encode)
+            .decoder(PacketTransferredResponse::new)
+            .consumerMainThread(PacketTransferredResponse::handle)
             .add();
         INSTANCE.messageBuilder(PacketSyncControllerTier.class,2, NetworkDirection.PLAY_TO_CLIENT)
             .encoder(PacketSyncControllerTier::encode)
@@ -48,11 +48,10 @@ public class NetworkManager {
             .add();
     }
 
-    static long lastEnergyTransferredRequest = -1;
-    public static void RequestEnergyTransferred(EnergyControllerTile te, int interval) {
-        if (lastEnergyTransferredRequest == -1 || Objects.requireNonNull(te.getLevel()).getGameTime() - lastEnergyTransferredRequest >= interval) {
-            lastEnergyTransferredRequest = interval;
-            INSTANCE.sendToServer(new PacketEnergyTransferredRequest(te));
+    public static void RequestTransferred(BaseControllerTile te, int interval) {
+        if (te.lastTransferredRequest == -1 || Objects.requireNonNull(te.getLevel()).getGameTime() - te.lastTransferredRequest >= interval) {
+            te.lastTransferredRequest = interval;
+            INSTANCE.sendToServer(new PacketTransferredRequest(te));
         }
     }
 }

@@ -8,48 +8,48 @@ import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import org.zornco.energynodes.EnergyNodes;
 import org.zornco.energynodes.network.NetworkManager;
-import org.zornco.energynodes.tile.controllers.EnergyControllerTile;
+import org.zornco.energynodes.tile.BaseControllerTile;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class PacketEnergyTransferredRequest {
+public class PacketTransferredRequest {
 
     private final BlockPos pos;
     private final long transferredThisTick;
 
-    public PacketEnergyTransferredRequest(EnergyControllerTile te) {
+    public PacketTransferredRequest(BaseControllerTile te) {
         this.transferredThisTick = te.transferredThisTick;
         this.pos = te.getBlockPos();
     }
-    public PacketEnergyTransferredRequest(FriendlyByteBuf buf) {
+    public PacketTransferredRequest(FriendlyByteBuf buf) {
         this.transferredThisTick = buf.readLong();
         this.pos = buf.readBlockPos();
     }
 
-    public static void encode(PacketEnergyTransferredRequest msg, FriendlyByteBuf packetBuffer) {
+    public static void encode(PacketTransferredRequest msg, FriendlyByteBuf packetBuffer) {
         packetBuffer.writeLong(msg.transferredThisTick);
         packetBuffer.writeBlockPos(msg.pos);
     }
 
-    public static void handle(PacketEnergyTransferredRequest msg, Supplier<NetworkEvent.Context> contextSupplier) {
+    public static void handle(PacketTransferredRequest msg, Supplier<NetworkEvent.Context> contextSupplier) {
         NetworkEvent.Context ctx = contextSupplier.get();
         ctx.enqueueWork(() -> {
             Level world = Objects.requireNonNull(ctx.getSender()).getCommandSenderWorld();
             if (world.hasChunkAt(msg.pos)) {
                 BlockEntity te = world.getBlockEntity(msg.pos);
                 if (te == null) {
-                    //EnergyNodes.LOGGER.warn("PacketEnergyTransferredRequest#handle: TileEntity is null!");
+                    //EnergyNodes.LOGGER.warn("PacketTransferredRequest#handle: TileEntity is null!");
                     //ctx.setPacketHandled(false);
-                    //throw new NullPointerException("PacketEnergyTransferredRequest#handle: TileEntity is null!");
+                    //throw new NullPointerException("PacketTransferredRequest#handle: TileEntity is null!");
                     return;
                 }
-                if (!(te instanceof EnergyControllerTile)) {
-                    EnergyNodes.LOGGER.warn("PacketEnergyTransferredRequest#handle: TileEntity is not a EnergyControllerTile!");
+                if (!(te instanceof BaseControllerTile)) {
+                    EnergyNodes.LOGGER.warn("PacketTransferredRequest#handle: TileEntity is not a BaseControllerTile!");
                     //ctx.setPacketHandled(false);
                     return;
                 }
-                NetworkManager.INSTANCE.sendTo(new PacketEnergyTransferredResponse((EnergyControllerTile) te),
+                NetworkManager.INSTANCE.sendTo(new PacketTransferredResponse((BaseControllerTile) te),
                         ctx.getSender().connection.connection, NetworkDirection.PLAY_TO_CLIENT);
             }
             ctx.setPacketHandled(true);
